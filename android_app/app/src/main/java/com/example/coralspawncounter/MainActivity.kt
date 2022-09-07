@@ -33,13 +33,13 @@ fun convertRGBAtoMat(img: Image?): Mat? {
         return null;
     }
 
-    val rgba = Mat(img.height, img.width, CvType.CV_8UC3)
-    val bgr = Mat(img.height, img.width, CvType.CV_8UC4)
+    val rgba = Mat(img.height, img.width, CvType.CV_8UC4)
+    val bgr = Mat(img.height, img.width, CvType.CV_8UC3)
     val data = ByteArray(img.planes[0].buffer.remaining())
     img.planes[0].buffer.get(data)
     rgba.put(0, 0, data)
     Imgproc.cvtColor(rgba, bgr, Imgproc.COLOR_RGBA2BGR)
-    return bgr
+    return rgba
 }
 
 
