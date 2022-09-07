@@ -7,7 +7,7 @@ from contours import detect_contours, contour_center
 from counters import ThresholdTracker
 
 # vid_src = VideoSource(
-#     vid_path="../real_data/PXL_20220817_055451873.mp4",
+#     vid_path="../../real_data/PXL_20220817_055451873.mp4",
 #     skip_frames=1450,
 #     rotate_degrees=2,
 #     #       y -> y      x -> x
@@ -15,15 +15,24 @@ from counters import ThresholdTracker
 # )
 
 # vid_src = VideoSource(
-#     vid_path="../real_data/20220818_164256.mp4",
+#     vid_path="../../real_data/20220818_164256.mp4",
 #     skip_frames=1200,
 #     rotate_degrees=0,
 #     #       y -> y      x -> x
 #     roi=((405, 510), (300, 1570)),
 # )
 
+# vid_src = VideoSource(
+#     vid_path="../../real_data/20220831_103240.mp4",
+#     # skip_frames=0,
+#     rotate_degrees=1,
+#     #       y -> y      x -> x
+#     roi=((400, 520), (500, 1500)),
+# )
+
+# live camera feed
 vid_src = VideoSource(
-    vid_path="../real_data/20220831_103240.mp4",
+    capture_device=0,
     # skip_frames=0,
     rotate_degrees=1,
     #       y -> y      x -> x

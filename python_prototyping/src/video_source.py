@@ -17,12 +17,21 @@ class VideoSource:
     def __init__(
         self,
         *,
-        vid_path: str,
+        capture_device: Optional[int] = None,
+        vid_path: Optional[str] = None,
         skip_frames: Optional[int] = None,
         rotate_degrees: Optional[int] = None,
         roi: Optional[ROI] = None,
     ) -> None:
-        self._cap = cv.VideoCapture(vid_path)
+        if capture_device is None and vid_path is None:
+            raise ValueError("Either capture_device or vid_path must be supplied.")
+        
+        if capture_device is not None:
+            self._cap = cv.VideoCapture(capture_device)
+        
+        if vid_path is not None:
+            self._cap = cv.VideoCapture(vid_path)
+        
         self.rotate_degrees = rotate_degrees
         self.roi = roi
 
@@ -33,6 +42,9 @@ class VideoSource:
         self._height, self._width, _ = frame.shape
                 
         if skip_frames is not None:
+            if capture_device is not None:
+                raise ValueError("Cannot skip frames while using a capture device.")
+            
             self._cap.set(cv.CAP_PROP_POS_FRAMES, skip_frames)
         
         if self.rotate_degrees is not None:
