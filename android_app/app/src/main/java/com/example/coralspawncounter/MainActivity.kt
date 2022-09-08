@@ -5,20 +5,26 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.media.Image
+import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.coralspawncounter.databinding.ActivityMainBinding
 import org.opencv.android.OpenCVLoader
-import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import java.io.File
+import java.net.URI
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -123,7 +129,8 @@ class MainActivity : AppCompatActivity() {
         private val REQUIRED_PERMISSIONS =
             mutableListOf (
                 Manifest.permission.CAMERA,
-                Manifest.permission.RECORD_AUDIO
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
             ).apply {
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
                     add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -138,18 +145,31 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
-            convertRGBAtoMat(image.image)?.let {
-                val width = it.cols()
-                val height = it.rows()
+//            convertRGBAtoMat(image.image)?.let {
+//                val width = it.cols()
+//                val height = it.rows()
+//
+//                val bitmapFiltered =
+//                    Bitmap.createBitmap(
+//                        width, height,
+//                        Bitmap.Config.ARGB_8888
+//                    )
+//
+//                Utils.matToBitmap(it, bitmapFiltered)
+//                drawImage(bitmapFiltered)
+//            }
 
-                val bitmapFiltered =
-                    Bitmap.createBitmap(
-                        width, height,
-                        Bitmap.Config.ARGB_8888
-                    )
-
-                Utils.matToBitmap(it, bitmapFiltered)
-                drawImage(bitmapFiltered)
+            val retriever = MediaMetadataRetriever()
+            val uri = URI("content://com.android.externalstorage.documents/document/primary%3ADownload%2F20220831_103240.mp4")
+            val path = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS
+            )
+            val file = File(path, "20220831_103240.mp4")
+            Log.e("AAA", file.absolutePath)
+            retriever.setDataSource(file.absolutePath);
+            val bmp = retriever.getFrameAtIndex(0)
+            if (bmp != null) {
+                drawImage(bmp)
             }
 
             image.close()
