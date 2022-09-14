@@ -16,7 +16,7 @@ fun contourCenter(contour: MatOfPoint): Point {
 }
 
 class SpawnCounter {
-    private val bgSubtractor: BackgroundSubtractorMOG2 = Video.createBackgroundSubtractorMOG2()
+    private val bgSubtractor: BackgroundSubtractorMOG2 = Video.createBackgroundSubtractorMOG2(500, 16.0, false)
     private val kernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
     private val roi = Rect(250, 400, 1500, 150)
 

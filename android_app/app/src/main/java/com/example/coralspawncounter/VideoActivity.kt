@@ -48,17 +48,18 @@ class VideoActivity : AppCompatActivity() {
         )
         val file = File(path, "20220831_103240.mp4")
         retriever.setDataSource(file.absolutePath);
-        var currentFrame = 0;
+        val numFrames = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)!!)
         while (true) {
-            val bmp = retriever.getFrameAtIndex(currentFrame)
-            if (bmp != null) {
-                val mat = Mat()
-                Utils.bitmapToMat(bmp, mat)
-                counter.nextImage(mat)
-                Utils.matToBitmap(mat, bmp)
-                drawImage(bmp)
+            for(i in 0 until numFrames) {
+                val bmp = retriever.getFrameAtIndex(i)
+                if (bmp != null) {
+                    val mat = Mat()
+                    Utils.bitmapToMat(bmp, mat)
+                    counter.nextImage(mat)
+                    Utils.matToBitmap(mat, bmp)
+                    drawImage(bmp)
+                }
             }
-            currentFrame++
         }
     }
 
