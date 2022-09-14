@@ -19,6 +19,7 @@ import java.io.File
 
 class VideoActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityVideoBinding
+    private lateinit var counter: SpawnCounter
 
     init {
         // OpenCV initialization
@@ -27,6 +28,7 @@ class VideoActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        counter = SpawnCounter()
         viewBinding = ActivityVideoBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         if (allPermissionsGranted()) {
@@ -48,9 +50,9 @@ class VideoActivity : AppCompatActivity() {
         retriever.setDataSource(file.absolutePath);
         var bmp = retriever.getFrameAtIndex(100)
         if (bmp != null) {
-            val mat = Mat(bmp.height, bmp.width, CvType.CV_8UC3)
+            val mat = Mat()
             Utils.bitmapToMat(bmp, mat)
-            Imgproc.line(mat, Point(10.0, 10.0), Point(200.0, 200.0), Scalar(200.0, 0.0, 0.0), 10)
+            counter.nextImage(mat, mat)
             Utils.matToBitmap(mat, bmp)
             drawImage(bmp)
         }
