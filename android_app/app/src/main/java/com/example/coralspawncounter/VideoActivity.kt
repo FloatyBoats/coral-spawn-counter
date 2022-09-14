@@ -10,6 +10,7 @@ import android.os.Environment
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import com.example.coralspawncounter.databinding.ActivityVideoBinding
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
@@ -49,13 +50,15 @@ class VideoActivity : AppCompatActivity() {
         retriever.setDataSource(file.absolutePath);
         var currentFrame = 0;
         while (true) {
-            var bmp = retriever.getFrameAtIndex(currentFrame)
+            val bmp = retriever.getFrameAtIndex(currentFrame)
             if (bmp != null) {
+                val bmpOut = createBitmap(bmp.width, bmp.height, bmp.config)
                 val mat = Mat()
+                val outMat = Mat()
                 Utils.bitmapToMat(bmp, mat)
-                counter.nextImage(mat, mat)
-                Utils.matToBitmap(mat, bmp)
-                drawImage(bmp)
+                counter.nextImage(mat, outMat)
+                Utils.matToBitmap(outMat, bmpOut)
+                drawImage(bmpOut)
             }
             currentFrame++
         }
