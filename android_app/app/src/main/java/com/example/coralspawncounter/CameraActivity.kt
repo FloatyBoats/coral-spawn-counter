@@ -5,10 +5,8 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.media.Image
-import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -24,8 +22,6 @@ import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
-import java.io.File
-import java.net.URI
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 

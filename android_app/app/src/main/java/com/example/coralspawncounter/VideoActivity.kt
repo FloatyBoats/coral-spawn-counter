@@ -14,7 +14,6 @@ import com.example.coralspawncounter.databinding.ActivityVideoBinding
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.*
-import org.opencv.imgproc.Imgproc
 import java.io.File
 
 class VideoActivity : AppCompatActivity() {
@@ -48,13 +47,17 @@ class VideoActivity : AppCompatActivity() {
         )
         val file = File(path, "20220831_103240.mp4")
         retriever.setDataSource(file.absolutePath);
-        var bmp = retriever.getFrameAtIndex(100)
-        if (bmp != null) {
-            val mat = Mat()
-            Utils.bitmapToMat(bmp, mat)
-            counter.nextImage(mat, mat)
-            Utils.matToBitmap(mat, bmp)
-            drawImage(bmp)
+        var currentFrame = 0;
+        while (true) {
+            var bmp = retriever.getFrameAtIndex(currentFrame)
+            if (bmp != null) {
+                val mat = Mat()
+                Utils.bitmapToMat(bmp, mat)
+                counter.nextImage(mat, mat)
+                Utils.matToBitmap(mat, bmp)
+                drawImage(bmp)
+            }
+            currentFrame++
         }
     }
 
