@@ -19,7 +19,7 @@ import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.coralspawncounter.databinding.ActivityMainBinding
+import com.example.coralspawncounter.databinding.ActivityCameraBinding
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.CvType
 import org.opencv.core.Mat
@@ -46,8 +46,8 @@ fun convertRGBAtoMat(img: Image?): Mat? {
 }
 
 
-class MainActivity : AppCompatActivity() {
-    private lateinit var viewBinding: ActivityMainBinding
+class CameraActivity : AppCompatActivity() {
+    private lateinit var viewBinding: ActivityCameraBinding
     private lateinit var cameraExecutor: ExecutorService
 
     init {
@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewBinding = ActivityMainBinding.inflate(layoutInflater)
+        viewBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         if (allPermissionsGranted()) {
             startCamera()
