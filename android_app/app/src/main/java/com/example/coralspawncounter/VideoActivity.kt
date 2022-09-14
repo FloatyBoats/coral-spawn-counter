@@ -52,13 +52,11 @@ class VideoActivity : AppCompatActivity() {
         while (true) {
             val bmp = retriever.getFrameAtIndex(currentFrame)
             if (bmp != null) {
-                val bmpOut = createBitmap(bmp.width, bmp.height, bmp.config)
                 val mat = Mat()
-                val outMat = Mat()
                 Utils.bitmapToMat(bmp, mat)
-                counter.nextImage(mat, outMat)
-                Utils.matToBitmap(outMat, bmpOut)
-                drawImage(bmpOut)
+                counter.nextImage(mat)
+                Utils.matToBitmap(mat, bmp)
+                drawImage(bmp)
             }
             currentFrame++
         }

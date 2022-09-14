@@ -3,6 +3,7 @@ package com.example.coralspawncounter
 import android.util.Log
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
+import org.opencv.video.BackgroundSubtractorMOG2
 import org.opencv.video.Video
 import kotlin.math.round
 
@@ -15,17 +16,17 @@ fun contourCenter(contour: MatOfPoint): Point {
 }
 
 class SpawnCounter {
-    val count = 0
-    val bgSubtractor = Video.createBackgroundSubtractorMOG2()
-    val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
+    private val bgSubtractor: BackgroundSubtractorMOG2 = Video.createBackgroundSubtractorMOG2()
+    private val kernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
+    private val roi = Rect(250, 400, 1500, 150)
 
-    fun nextImage(mat: Mat, debug_out: Mat) {
-        mat.copyTo(debug_out)
+    fun nextImage(mat: Mat) {
+        val roiMat = Mat(mat, roi)
         val binaryMat = Mat()
-        bgSubtractor.apply(mat, binaryMat)
+        bgSubtractor.apply(roiMat, binaryMat)
         Imgproc.erode(binaryMat, binaryMat, kernel, Point(0.0, 0.0), 3)
-        var hierarchy = Mat()
-        var contours = mutableListOf<MatOfPoint>()
+        val hierarchy = Mat()
+        val contours = mutableListOf<MatOfPoint>()
         val colour = Scalar(255.0, 0.0, 0.0, 255.0)
         Imgproc.findContours(binaryMat, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE)
         for (contour in contours) {
@@ -33,7 +34,16 @@ class SpawnCounter {
             if(center.x.isNaN() || center.y.isNaN()) {
                 continue
             }
-            Imgproc.drawMarker(debug_out, contourCenter(contour), colour, Imgproc.MARKER_TILTED_CROSS, 20, 3)
+
+            Imgproc.drawMarker(
+                mat,
+                Point(center.x + roi.x, center.y + roi.y),
+                colour,
+                Imgproc.MARKER_TILTED_CROSS,
+                20,
+                3,
+            )
         }
+        Imgproc.rectangle(mat, roi, Scalar(0.0, 255.0, 0.0, 255.0), 10)
     }
 }
