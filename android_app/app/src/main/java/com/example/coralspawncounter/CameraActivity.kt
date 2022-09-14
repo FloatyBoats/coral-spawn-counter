@@ -21,6 +21,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.coralspawncounter.databinding.ActivityCameraBinding
 import org.opencv.android.OpenCVLoader
+import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import java.io.File
@@ -124,7 +125,6 @@ class CameraActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "CameraXApp"
-        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
             mutableListOf (
@@ -145,33 +145,19 @@ class CameraActivity : AppCompatActivity() {
                 return
             }
 
-//            convertRGBAtoMat(image.image)?.let {
-//                val width = it.cols()
-//                val height = it.rows()
-//
-//                val bitmapFiltered =
-//                    Bitmap.createBitmap(
-//                        width, height,
-//                        Bitmap.Config.ARGB_8888
-//                    )
-//
-//                Utils.matToBitmap(it, bitmapFiltered)
-//                drawImage(bitmapFiltered)
-//            }
+            convertRGBAtoMat(image.image)?.let {
+                val width = it.cols()
+                val height = it.rows()
 
-            val retriever = MediaMetadataRetriever()
-            val uri = URI("content://com.android.externalstorage.documents/document/primary%3ADownload%2F20220831_103240.mp4")
-            val path = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOWNLOADS
-            )
-            val file = File(path, "20220831_103240.mp4")
-            Log.e("AAA", file.absolutePath)
-            retriever.setDataSource(file.absolutePath);
-            val bmp = retriever.getFrameAtIndex(0)
-            if (bmp != null) {
-                drawImage(bmp)
+                val bitmapFiltered =
+                    Bitmap.createBitmap(
+                        width, height,
+                        Bitmap.Config.ARGB_8888
+                    )
+
+                Utils.matToBitmap(it, bitmapFiltered)
+                drawImage(bitmapFiltered)
             }
-
             image.close()
         }
     }
