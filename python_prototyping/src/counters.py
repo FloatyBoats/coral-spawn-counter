@@ -40,7 +40,7 @@ class ThresholdTracker:
                             markerSize=20,
                             thickness=3,
                         )
-                        continue
+                        break
         
         self.prevous_points = points
     
