@@ -15,6 +15,7 @@ import com.example.coralspawncounter.databinding.ActivityVideoBinding
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.*
+import org.opencv.imgproc.Imgproc
 import java.io.File
 
 class VideoActivity : AppCompatActivity() {
@@ -46,7 +47,7 @@ class VideoActivity : AppCompatActivity() {
         val path = Environment.getExternalStoragePublicDirectory(
             Environment.DIRECTORY_DOWNLOADS
         )
-        val file = File(path, "20220831_103240.mp4")
+        val file = File(path, "PXL_20220915_042002563.mp4")
         retriever.setDataSource(file.absolutePath);
         val numFrames = Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)!!)
         while (true) {

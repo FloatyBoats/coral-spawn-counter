@@ -129,12 +129,7 @@ class CameraActivity : AppCompatActivity() {
             mutableListOf (
                 Manifest.permission.CAMERA,
                 Manifest.permission.RECORD_AUDIO,
-                Manifest.permission.READ_EXTERNAL_STORAGE,
-            ).apply {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-                    add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                }
-            }.toTypedArray()
+            ).toTypedArray()
     }
 
     private inner class SpawnCountAnalyzer() : ImageAnalysis.Analyzer {
@@ -163,7 +158,8 @@ class CameraActivity : AppCompatActivity() {
 
     private fun drawImage(bitmap: Bitmap) {
         val canvas = viewBinding.surfaceView.holder.lockCanvas()
-        val dest = Rect(0, 0, canvas.width, canvas.height)
+        val width = (bitmap.width.toDouble()/bitmap.height.toDouble()) * canvas.height
+        val dest = Rect(0, 0, width.toInt(), canvas.height)
         canvas.drawBitmap(bitmap, null, dest, null)
         viewBinding.surfaceView.holder.unlockCanvasAndPost(canvas)
     }
