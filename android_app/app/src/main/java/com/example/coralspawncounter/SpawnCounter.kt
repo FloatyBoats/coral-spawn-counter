@@ -33,7 +33,8 @@ fun manhattanDist(p1: Point, p2: Point): Double {
 class SpawnCounter {
     private val bgSubtractor: BackgroundSubtractorMOG2 = Video.createBackgroundSubtractorMOG2(500, 16.0, false)
     private val kernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
-    private val roi = Rect(250, 400, 1500, 150)
+//    private val roi = Rect(250, 400, 1500, 150)
+    private val roi = Rect(10, 10, 100, 100)
     private val minContourAreaThreshold = 60
     private val counter = Counter(listOf(300, 600, 900, 1200))
 

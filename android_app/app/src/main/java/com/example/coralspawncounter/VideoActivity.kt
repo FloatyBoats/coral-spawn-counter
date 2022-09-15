@@ -19,16 +19,16 @@ import java.io.File
 
 class VideoActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityVideoBinding
-    private lateinit var counter: SpawnCounter
+    private var counter: SpawnCounter
 
     init {
         // OpenCV initialization
         OpenCVLoader.initDebug()
+        counter = SpawnCounter()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        counter = SpawnCounter()
         viewBinding = ActivityVideoBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
         if (allPermissionsGranted()) {

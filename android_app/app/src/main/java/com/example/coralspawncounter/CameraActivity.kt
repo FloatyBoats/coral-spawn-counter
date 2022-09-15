@@ -35,21 +35,24 @@ fun convertRGBAtoMat(img: Image?): Mat? {
         return null;
     }
 
-    val argb = Mat(img.height, img.width, CvType.CV_8UC4)
+    val rgba = Mat(img.height, img.width, CvType.CV_8UC4)
     val data = ByteArray(img.planes[0].buffer.remaining())
     img.planes[0].buffer.get(data)
-    argb.put(0, 0, data)
-    return argb
+    rgba.put(0, 0, data)
+    return rgba
 }
 
 
 class CameraActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityCameraBinding
     private lateinit var cameraExecutor: ExecutorService
+    private var counter: SpawnCounter
+
 
     init {
         // OpenCV initialization
         OpenCVLoader.initDebug()
+        counter = SpawnCounter()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,7 +80,7 @@ class CameraActivity : AppCompatActivity() {
                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                 .build()
                 .also {
-                    it.setAnalyzer(cameraExecutor, LuminosityAnalyzer())
+                    it.setAnalyzer(cameraExecutor, SpawnCountAnalyzer())
                 }
 
             // Select back camera as a default
@@ -134,7 +137,7 @@ class CameraActivity : AppCompatActivity() {
             }.toTypedArray()
     }
 
-    private inner class LuminosityAnalyzer() : ImageAnalysis.Analyzer {
+    private inner class SpawnCountAnalyzer() : ImageAnalysis.Analyzer {
         @ExperimentalGetImage
         override fun analyze(image: ImageProxy) {
             if(image.image == null) {
@@ -150,7 +153,7 @@ class CameraActivity : AppCompatActivity() {
                         width, height,
                         Bitmap.Config.ARGB_8888
                     )
-
+                counter.nextImage(it)
                 Utils.matToBitmap(it, bitmapFiltered)
                 drawImage(bitmapFiltered)
             }
