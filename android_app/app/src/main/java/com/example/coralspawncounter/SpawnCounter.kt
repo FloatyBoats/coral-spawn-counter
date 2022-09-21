@@ -38,9 +38,8 @@ class SpawnCounter {
     private val minContourAreaThreshold = 10
     private val counter = Counter(listOf(50, 100, 150))
 
-    fun nextImage(mat: Mat) {
+    fun nextImage(mat: Mat, binaryMat: Mat) {
         val roiMat = Mat(mat, roi)
-        val binaryMat = Mat()
 
         bgSubtractor.apply(roiMat, binaryMat)
         Imgproc.erode(binaryMat, binaryMat, kernel, Point(0.0, 0.0), 3)

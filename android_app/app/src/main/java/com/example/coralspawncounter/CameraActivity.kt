@@ -7,6 +7,7 @@ import android.graphics.Rect
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
+import android.view.SurfaceView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
@@ -127,7 +128,6 @@ class CameraActivity : AppCompatActivity() {
         private val REQUIRED_PERMISSIONS =
             mutableListOf (
                 Manifest.permission.CAMERA,
-                Manifest.permission.RECORD_AUDIO,
             ).toTypedArray()
     }
 
@@ -135,27 +135,46 @@ class CameraActivity : AppCompatActivity() {
         @ExperimentalGetImage
         override fun analyze(image: ImageProxy) {
             convertRGBAtoMat(image.image)?.let {
-                val width = it.cols()
-                val height = it.rows()
+                val binaryMat = Mat()
 
-                val bitmapFiltered =
+                counter.nextImage(it, binaryMat)
+
+                val bitmap =
                     Bitmap.createBitmap(
-                        width, height,
+                        it.cols(), it.rows(),
                         Bitmap.Config.ARGB_8888
                     )
-                counter.nextImage(it)
-                Utils.matToBitmap(it, bitmapFiltered)
-                drawImage(bitmapFiltered)
+                val binaryBitmap =
+                    Bitmap.createBitmap(
+                        binaryMat.cols(), binaryMat.rows(),
+                        Bitmap.Config.ARGB_8888
+                    )
+
+                Utils.matToBitmap(it, bitmap)
+                drawImage(viewBinding.topSurfaceView, bitmap)
+
+                Utils.matToBitmap(binaryMat, binaryBitmap)
+                drawImage(viewBinding.bottomSurfaceView, binaryBitmap)
             }
             image.close()
         }
     }
 
-    private fun drawImage(bitmap: Bitmap) {
-        val canvas = viewBinding.surfaceView.holder.lockCanvas()
-        val width = (bitmap.width.toDouble()/bitmap.height.toDouble()) * canvas.height
-        val dest = Rect(0, 0, width.toInt(), canvas.height)
+    private fun drawImage(surfaceView: SurfaceView, bitmap: Bitmap) {
+        val canvas = surfaceView.holder.lockCanvas()
+
+        val canvasRatio = canvas.width.toDouble() / canvas.height.toDouble()
+        val bitmapRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+
+        val dest = if(canvasRatio > bitmapRatio) {
+            val width = (bitmap.width.toDouble()/bitmap.height.toDouble()) * canvas.height
+            Rect(0, 0, width.toInt(), canvas.height)
+        } else {
+            val height = (bitmap.height.toDouble()/bitmap.width.toDouble()) * canvas.width
+            Rect(0, 0, canvas.width, height.toInt())
+        }
+
         canvas.drawBitmap(bitmap, null, dest, null)
-        viewBinding.surfaceView.holder.unlockCanvasAndPost(canvas)
+        surfaceView.holder.unlockCanvasAndPost(canvas)
     }
 }
