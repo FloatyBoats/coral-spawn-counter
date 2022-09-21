@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.media.Image
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -135,10 +134,6 @@ class CameraActivity : AppCompatActivity() {
     private inner class SpawnCountAnalyzer() : ImageAnalysis.Analyzer {
         @ExperimentalGetImage
         override fun analyze(image: ImageProxy) {
-            if(image.image == null) {
-                return
-            }
-
             convertRGBAtoMat(image.image)?.let {
                 val width = it.cols()
                 val height = it.rows()
