@@ -1,6 +1,7 @@
 package com.example.coralspawncounter
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -9,13 +10,13 @@ import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.util.Size
+import android.view.MotionEvent
 import android.view.SurfaceView
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
+import androidx.camera.core.*
+import androidx.camera.core.FocusMeteringAction.FLAG_AF
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -48,6 +49,7 @@ fun convertRGBAtoMat(img: Image?): Mat? {
 class CameraActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityCameraBinding
     private lateinit var cameraExecutor: ExecutorService
+    private lateinit var camera: Camera
     private var counter: SpawnCounter
 
 
@@ -85,6 +87,7 @@ class CameraActivity : AppCompatActivity() {
         viewBinding.ButtonReset.setOnClickListener { counter.counter.reset() }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
@@ -108,8 +111,22 @@ class CameraActivity : AppCompatActivity() {
                 cameraProvider.unbindAll()
 
                 // Bind use cases to camera
-                cameraProvider.bindToLifecycle(
+                camera = cameraProvider.bindToLifecycle(
                     this, cameraSelector, imageAnalyzer)
+
+                viewBinding.topSurfaceView.setOnTouchListener { v, e ->
+                    val meteringPointFactory = DisplayOrientedMeteringPointFactory(
+                        v.display,
+                        camera.cameraInfo,
+                        v.width.toFloat(),
+                        v.height.toFloat(),
+                    )
+
+                    val meteringPoint = meteringPointFactory.createPoint(e.x, e.y)
+                    val action = FocusMeteringAction.Builder(meteringPoint, FLAG_AF).build()
+                    camera.cameraControl.startFocusAndMetering(action)
+                    true
+                }
 
             } catch(exc: Exception) {
                 Log.e("Camera Failed", "Use case binding failed", exc)
