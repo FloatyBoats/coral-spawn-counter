@@ -35,18 +35,18 @@ class SpawnCounter {
     private val kernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
     private val roi = Rect(0, 0, 0, 0)
     private val minContourAreaThreshold = 10
-    private val counter = Counter(3, roi.width);
-    var doCount = false;
+    val counter = Counter(3, roi.width)
+    var doCount = false
 
     fun setROIHorizontal(start: Int, end: Int) {
-        roi.x = start;
-        roi.width = end - start;
-        counter.updateROI(roi.width);
+        roi.x = start
+        roi.width = end - start
+        counter.updateROI(roi.width)
     }
 
     fun setROIVertical(start: Int, end: Int) {
-        roi.y = start;
-        roi.height = end - start;
+        roi.y = start
+        roi.height = end - start
     }
 
     fun nextImage(mat: Mat, binaryMat: Mat) {
@@ -119,17 +119,21 @@ class SpawnCounter {
         val thresholds: MutableList<Int> = MutableList(numThresholds) {0}
 
         init {
-            updateROI(roiWidth);
+            updateROI(roiWidth)
         }
 
         val thresholdCounts = MutableList(numThresholds) {0}
         private var previousPoints = listOf<Point>()
 
         fun updateROI(roiWidth: Int) {
-            val interval = roiWidth / (numThresholds + 1);
+            val interval = roiWidth / (numThresholds + 1)
             for (i in 1..numThresholds) {
-                thresholds[i-1] = (interval*i);
+                thresholds[i-1] = (interval*i)
             }
+        }
+
+        fun reset() {
+            thresholdCounts.fill(0)
         }
 
         fun update(points: List<Point>): List<Point> {

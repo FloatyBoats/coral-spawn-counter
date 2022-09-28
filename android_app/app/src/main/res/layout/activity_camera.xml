@@ -70,5 +70,18 @@
             android:stepSize="2"
             app:values="@array/slider_roi_vertical_initial_values"/>
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/SwitchCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Counting" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/ButtonReset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Reset" />
+
+
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

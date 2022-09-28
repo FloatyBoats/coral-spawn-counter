@@ -80,6 +80,9 @@ class CameraActivity : AppCompatActivity() {
 
         counter.setROIHorizontal(viewBinding.SliderROIHorizontal.values[0].toInt(), viewBinding.SliderROIHorizontal.values[1].toInt())
         counter.setROIVertical(viewBinding.SliderROIVertical.values[0].toInt(), viewBinding.SliderROIVertical.values[1].toInt())
+
+        viewBinding.SwitchCount.setOnCheckedChangeListener { _, isChecked -> counter.doCount = isChecked }
+        viewBinding.ButtonReset.setOnClickListener { counter.counter.reset() }
     }
 
     private fun startCamera() {
