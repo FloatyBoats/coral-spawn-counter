@@ -45,6 +45,17 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="Exposure" />
+
+
+        <SeekBar
+            android:id="@+id/seekBarExposure"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="ROI Horizontal" />
 
         <com.google.android.material.slider.RangeSlider

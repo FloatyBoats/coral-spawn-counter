@@ -13,6 +13,7 @@ import android.util.Size
 import android.view.MotionEvent
 import android.view.SurfaceView
 import android.view.View
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
@@ -114,6 +115,35 @@ class CameraActivity : AppCompatActivity() {
                 camera = cameraProvider.bindToLifecycle(
                     this, cameraSelector, imageAnalyzer)
 
+                val exposureState = camera.cameraInfo.exposureState
+
+                viewBinding.seekBarExposure.apply {
+                    isEnabled = exposureState.isExposureCompensationSupported
+                    max = exposureState.exposureCompensationRange.upper
+                    min = exposureState.exposureCompensationRange.lower
+                    progress = exposureState.exposureCompensationIndex
+                }
+
+                viewBinding.seekBarExposure.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(
+                        seekBar: SeekBar?,
+                        progress: Int,
+                        fromUser: Boolean
+                    ) {
+                        camera.cameraControl.setExposureCompensationIndex(progress)
+                            .addListener({viewBinding.seekBarExposure.progress = camera.cameraInfo.exposureState.exposureCompensationIndex}, mainExecutor)
+                    }
+
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                        // Not needed
+                    }
+
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                        // Not needed
+                    }
+
+                })
+
                 viewBinding.topSurfaceView.setOnTouchListener { v, e ->
                     val meteringPointFactory = DisplayOrientedMeteringPointFactory(
                         v.display,
@@ -123,7 +153,10 @@ class CameraActivity : AppCompatActivity() {
                     )
 
                     val meteringPoint = meteringPointFactory.createPoint(e.x, e.y)
-                    val action = FocusMeteringAction.Builder(meteringPoint, FLAG_AF).build()
+                    val action = FocusMeteringAction
+                        .Builder(meteringPoint, FLAG_AF)
+                        .disableAutoCancel()
+                        .build()
                     camera.cameraControl.startFocusAndMetering(action)
                     true
                 }
