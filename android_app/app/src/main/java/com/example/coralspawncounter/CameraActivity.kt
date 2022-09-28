@@ -3,6 +3,7 @@ package com.example.coralspawncounter
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Rect
 import android.media.Image
 import android.os.Bundle
@@ -68,6 +69,17 @@ class CameraActivity : AppCompatActivity() {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
+        
+        viewBinding.SliderROIHorizontal.addOnChangeListener {
+            slider, _, _ -> counter.setROIHorizontal(slider.values[0].toInt(), slider.values[1].toInt())
+        }
+
+        viewBinding.SliderROIVertical.addOnChangeListener {
+            slider, _, _ -> counter.setROIVertical(slider.values[0].toInt(), slider.values[1].toInt())
+        }
+
+        counter.setROIHorizontal(viewBinding.SliderROIHorizontal.values[0].toInt(), viewBinding.SliderROIHorizontal.values[1].toInt())
+        counter.setROIVertical(viewBinding.SliderROIVertical.values[0].toInt(), viewBinding.SliderROIVertical.values[1].toInt())
     }
 
     private fun startCamera() {
@@ -97,7 +109,7 @@ class CameraActivity : AppCompatActivity() {
                     this, cameraSelector, imageAnalyzer)
 
             } catch(exc: Exception) {
-                Log.e(TAG, "Use case binding failed", exc)
+                Log.e("Camera Failed", "Use case binding failed", exc)
             }
 
         }, ContextCompat.getMainExecutor(this))
@@ -125,7 +137,6 @@ class CameraActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val TAG = "CameraXApp"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
             mutableListOf (
@@ -164,6 +175,8 @@ class CameraActivity : AppCompatActivity() {
 
     private fun drawImage(surfaceView: SurfaceView, bitmap: Bitmap) {
         val canvas = surfaceView.holder.lockCanvas()
+
+        canvas.drawColor(Color.BLACK);
 
         val canvasRatio = canvas.width.toDouble() / canvas.height.toDouble()
         val bitmapRatio = bitmap.width.toDouble() / bitmap.height.toDouble()

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="slider_roi_horizontal_initial_values">
-        <item>0</item>
-        <item>1920</item>
+        <item>700</item>
+        <item>1220</item>
     </array>
     <array name="slider_roi_vertical_initial_values">
-        <item>0</item>
-        <item>1080</item>
+        <item>500</item>
+        <item>580</item>
     </array>
 </resources>
