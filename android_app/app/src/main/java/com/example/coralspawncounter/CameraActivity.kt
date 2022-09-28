@@ -7,6 +7,7 @@ import android.graphics.Rect
 import android.media.Image
 import android.os.Bundle
 import android.util.Log
+import android.util.Size
 import android.view.SurfaceView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -78,6 +79,7 @@ class CameraActivity : AppCompatActivity() {
 
             val imageAnalyzer = ImageAnalysis.Builder()
                 .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                .setTargetResolution(Size(1920, 1080))
                 .build()
                 .also {
                     it.setAnalyzer(cameraExecutor, SpawnCountAnalyzer())

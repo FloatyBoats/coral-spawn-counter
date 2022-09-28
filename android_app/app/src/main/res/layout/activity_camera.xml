@@ -21,7 +21,7 @@
             android:id="@+id/topSurfaceView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_weight="2" />
 
         <SurfaceView
             android:id="@+id/bottomSurfaceView"
@@ -45,15 +45,30 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Threshold" />
+            android:text="ROI Horizontal" />
 
-        <com.google.android.material.slider.Slider
-            android:id="@+id/slider"
+        <com.google.android.material.slider.RangeSlider
+            android:id="@+id/SliderROIHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:valueFrom="0"
-            android:valueTo="100"
-            android:stepSize="2" />
+            android:valueTo="1920"
+            android:stepSize="2"
+            app:values="@array/slider_roi_horizontal_initial_values" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ROI Vertical" />
+
+        <com.google.android.material.slider.RangeSlider
+            android:id="@+id/SliderROIVertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0"
+            android:valueTo="1080"
+            android:stepSize="2"
+            app:values="@array/slider_roi_vertical_initial_values"/>
 
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
