@@ -35,11 +35,13 @@ class SpawnCounter {
     private val kernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
     private val roi = Rect(0, 0, 0, 0)
     private val minContourAreaThreshold = 10
-    private val counter = Counter(listOf(50, 100, 150))
+    private val counter = Counter(3, roi.width);
+    var doCount = false;
 
     fun setROIHorizontal(start: Int, end: Int) {
         roi.x = start;
         roi.width = end - start;
+        counter.updateROI(roi.width);
     }
 
     fun setROIVertical(start: Int, end: Int) {
@@ -70,10 +72,10 @@ class SpawnCounter {
             )
         }
 
+        // draw ROI
         Imgproc.rectangle(mat, roi, green, 5)
 
-        val countedCenters = counter.update(contourCenters)
-
+        // draw threshold lines
         counter.thresholds.forEach {
             thresh -> Imgproc.line(
                 mat,
@@ -84,17 +86,22 @@ class SpawnCounter {
             )
         }
 
-        countedCenters.forEach {
-            center -> Imgproc.drawMarker(
-                mat,
-                Point(roi.x + center.x, center.y + roi.y),
-                green,
-                Imgproc.MARKER_TILTED_CROSS,
-                20,
-                3,
-            )
+        if(doCount) {
+            val countedCenters = counter.update(contourCenters)
+
+            countedCenters.forEach {
+                center -> Imgproc.drawMarker(
+                    mat,
+                    Point(roi.x + center.x, center.y + roi.y),
+                    green,
+                    Imgproc.MARKER_TILTED_CROSS,
+                    20,
+                    3,
+                )
+            }
         }
 
+        // draw counts above threshold vals
         counter.thresholds.zip(counter.thresholdCounts).forEach {
             (thresh, count) -> Imgproc.putText(
                 mat,
@@ -108,9 +115,22 @@ class SpawnCounter {
         }
     }
 
-    class Counter(val thresholds: List<Int>) {
-        val thresholdCounts = MutableList(thresholds.size) {0}
+    class Counter(private val numThresholds: Int, roiWidth: Int) {
+        val thresholds: MutableList<Int> = MutableList(numThresholds) {0}
+
+        init {
+            updateROI(roiWidth);
+        }
+
+        val thresholdCounts = MutableList(numThresholds) {0}
         private var previousPoints = listOf<Point>()
+
+        fun updateROI(roiWidth: Int) {
+            val interval = roiWidth / (numThresholds + 1);
+            for (i in 1..numThresholds) {
+                thresholds[i-1] = (interval*i);
+            }
+        }
 
         fun update(points: List<Point>): List<Point> {
             val countedPoints = mutableListOf<Point>()
