@@ -18,16 +18,10 @@
         app:layout_constraintHorizontal_weight="2">
 
         <SurfaceView
-            android:id="@+id/topSurfaceView"
+            android:id="@+id/surfaceView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="2" />
-
-        <SurfaceView
-            android:id="@+id/bottomSurfaceView"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
 
     </LinearLayout>
 

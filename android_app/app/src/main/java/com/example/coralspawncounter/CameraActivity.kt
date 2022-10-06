@@ -10,9 +10,7 @@ import android.media.Image
 import android.os.Bundle
 import android.util.Log
 import android.util.Size
-import android.view.MotionEvent
 import android.view.SurfaceView
-import android.view.View
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -144,7 +142,7 @@ class CameraActivity : AppCompatActivity() {
 
                 })
 
-                viewBinding.topSurfaceView.setOnTouchListener { v, e ->
+                viewBinding.surfaceView.setOnTouchListener { v, e ->
                     val meteringPointFactory = DisplayOrientedMeteringPointFactory(
                         v.display,
                         camera.cameraInfo,
@@ -217,32 +215,41 @@ class CameraActivity : AppCompatActivity() {
                     )
 
                 Utils.matToBitmap(it, bitmap)
-                drawImage(viewBinding.topSurfaceView, bitmap)
-
                 Utils.matToBitmap(binaryMat, binaryBitmap)
-                drawImage(viewBinding.bottomSurfaceView, binaryBitmap)
+
+                drawBitmaps(viewBinding.surfaceView, listOf( bitmap, binaryBitmap), listOf(0.7, 0.3), listOf(0.0, 0.7))
             }
             image.close()
         }
     }
 
-    private fun drawImage(surfaceView: SurfaceView, bitmap: Bitmap) {
+    private fun drawBitmaps(surfaceView: SurfaceView, bitmaps: List<Bitmap>, heights: List<Double>, vertOffsets: List<Double>) {
         val canvas = surfaceView.holder.lockCanvas()
 
         canvas.drawColor(Color.BLACK);
 
-        val canvasRatio = canvas.width.toDouble() / canvas.height.toDouble()
-        val bitmapRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+        for (i in bitmaps.indices) {
+            val bitmap = bitmaps[i]
+            val height = heights[i]
+            val vertOffset = vertOffsets[i]
 
-        val dest = if(canvasRatio > bitmapRatio) {
-            val width = (bitmap.width.toDouble()/bitmap.height.toDouble()) * canvas.height
-            Rect(0, 0, width.toInt(), canvas.height)
-        } else {
-            val height = (bitmap.height.toDouble()/bitmap.width.toDouble()) * canvas.width
-            Rect(0, 0, canvas.width, height.toInt())
+            val drawHeight = (canvas.height * height).toInt();
+            val drawOffset = (canvas.height * vertOffset).toInt();
+
+            val canvasRatio = canvas.width.toDouble() / drawHeight.toDouble()
+            val bitmapRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
+
+            val dest = if(canvasRatio > bitmapRatio) {
+                val destWidth = (bitmap.width.toDouble()/bitmap.height.toDouble()) * drawHeight
+                Rect(0, drawOffset, destWidth.toInt(), drawOffset + drawHeight)
+            } else {
+                val destHeight = (bitmap.height.toDouble()/bitmap.width.toDouble()) * canvas.width
+                Rect(0, drawOffset, canvas.width, drawOffset + destHeight.toInt())
+            }
+
+            canvas.drawBitmap(bitmap, null, dest, null)
         }
 
-        canvas.drawBitmap(bitmap, null, dest, null)
         surfaceView.holder.unlockCanvasAndPost(canvas)
     }
 }
