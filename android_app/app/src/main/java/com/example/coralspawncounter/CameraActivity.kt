@@ -7,9 +7,12 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Rect
 import android.media.Image
+import android.media.MediaRecorder
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.util.Size
+import android.view.Surface
 import android.view.SurfaceView
 import android.widget.SeekBar
 import android.widget.Toast
@@ -24,6 +27,7 @@ import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -50,10 +54,10 @@ class CameraActivity : AppCompatActivity() {
     private lateinit var cameraExecutor: ExecutorService
     private lateinit var camera: Camera
     private var counter: SpawnCounter
-
+    private lateinit var mediaRecorder: MediaRecorder
+    private var recorderSurface: Surface? = null
 
     init {
-        // OpenCV initialization
         OpenCVLoader.initDebug()
         counter = SpawnCounter()
     }
@@ -82,8 +86,30 @@ class CameraActivity : AppCompatActivity() {
         counter.setROIHorizontal(viewBinding.SliderROIHorizontal.values[0].toInt(), viewBinding.SliderROIHorizontal.values[1].toInt())
         counter.setROIVertical(viewBinding.SliderROIVertical.values[0].toInt(), viewBinding.SliderROIVertical.values[1].toInt())
 
-        viewBinding.SwitchCount.setOnCheckedChangeListener { _, isChecked -> counter.doCount = isChecked }
+        viewBinding.SwitchCount.setOnCheckedChangeListener { _, isChecked -> counter.doCount = isChecked; if (isChecked) {startRecording()} else {stopRecording()} }
         viewBinding.ButtonReset.setOnClickListener { counter.counter.reset() }
+    }
+
+    private fun startRecording() {
+        val dirPath = baseContext.getExternalFilesDir(Environment.DIRECTORY_DCIM)
+        val file = File(dirPath, "test.mp4")
+        mediaRecorder = MediaRecorder()
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)
+        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+        mediaRecorder.setOutputFile(file.absolutePath)
+        mediaRecorder.setVideoEncodingBitRate(1000000)
+        mediaRecorder.setVideoFrameRate(30)
+        mediaRecorder.setVideoSize(viewBinding.surfaceView.width, viewBinding.surfaceView.height)
+        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
+        mediaRecorder.prepare()
+        mediaRecorder.start()
+        recorderSurface = mediaRecorder.surface
+    }
+
+    private fun stopRecording() {
+        recorderSurface = null
+        mediaRecorder.stop()
+        mediaRecorder.release()
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -224,32 +250,36 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun drawBitmaps(surfaceView: SurfaceView, bitmaps: List<Bitmap>, heights: List<Double>, vertOffsets: List<Double>) {
-        val canvas = surfaceView.holder.lockCanvas()
+        val viewCanvas = surfaceView.holder.lockCanvas()
+        val recordCanvas = recorderSurface?.lockCanvas(null)
 
-        canvas.drawColor(Color.BLACK);
+        viewCanvas.drawColor(Color.BLACK)
+        recordCanvas?.drawColor(Color.BLACK)
 
         for (i in bitmaps.indices) {
             val bitmap = bitmaps[i]
             val height = heights[i]
             val vertOffset = vertOffsets[i]
 
-            val drawHeight = (canvas.height * height).toInt();
-            val drawOffset = (canvas.height * vertOffset).toInt();
+            val drawHeight = (viewCanvas.height * height).toInt();
+            val drawOffset = (viewCanvas.height * vertOffset).toInt();
 
-            val canvasRatio = canvas.width.toDouble() / drawHeight.toDouble()
+            val canvasRatio = viewCanvas.width.toDouble() / drawHeight.toDouble()
             val bitmapRatio = bitmap.width.toDouble() / bitmap.height.toDouble()
 
             val dest = if(canvasRatio > bitmapRatio) {
                 val destWidth = (bitmap.width.toDouble()/bitmap.height.toDouble()) * drawHeight
                 Rect(0, drawOffset, destWidth.toInt(), drawOffset + drawHeight)
             } else {
-                val destHeight = (bitmap.height.toDouble()/bitmap.width.toDouble()) * canvas.width
-                Rect(0, drawOffset, canvas.width, drawOffset + destHeight.toInt())
+                val destHeight = (bitmap.height.toDouble()/bitmap.width.toDouble()) * viewCanvas.width
+                Rect(0, drawOffset, viewCanvas.width, drawOffset + destHeight.toInt())
             }
 
-            canvas.drawBitmap(bitmap, null, dest, null)
+            viewCanvas.drawBitmap(bitmap, null, dest, null)
+            recordCanvas?.drawBitmap(bitmap, null, dest, null)
         }
 
-        surfaceView.holder.unlockCanvasAndPost(canvas)
+        surfaceView.holder.unlockCanvasAndPost(viewCanvas)
+        recorderSurface?.unlockCanvasAndPost(recordCanvas)
     }
 }
