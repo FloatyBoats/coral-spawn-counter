@@ -28,6 +28,8 @@ import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import java.io.File
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -90,9 +92,13 @@ class CameraActivity : AppCompatActivity() {
         viewBinding.ButtonReset.setOnClickListener { counter.counter.reset() }
     }
 
+    @SuppressLint("SimpleDateFormat")
     private fun startRecording() {
         val dirPath = baseContext.getExternalFilesDir(Environment.DIRECTORY_DCIM)
-        val file = File(dirPath, "test.mp4")
+        val formatter = SimpleDateFormat("yyyyMMdd_HHmmss")
+        val timestamp: String = formatter.format(Date())
+
+        val file = File(dirPath, "${timestamp}.mp4")
         mediaRecorder = MediaRecorder()
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
