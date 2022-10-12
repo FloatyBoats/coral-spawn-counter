@@ -32,11 +32,16 @@ fun manhattanDist(p1: Point, p2: Point): Double {
 
 class SpawnCounter {
     private val bgSubtractor: BackgroundSubtractorMOG2 = Video.createBackgroundSubtractorMOG2(500, 16.0, false)
-    private val kernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
     private val roi = Rect(0, 0, 0, 0)
-    private val minContourAreaThreshold = 10
     val counter = Counter(3, roi.width)
+    private var erodeKernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(1.0, 1.0))
+    var minContourAreaThreshold = 10
     var doCount = false
+    var erodeIterations = 1;
+
+    fun setErodeKernelSize(size: Double) {
+        erodeKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(size, size))
+    }
 
     fun setROIHorizontal(start: Int, end: Int) {
         roi.x = start
@@ -53,7 +58,7 @@ class SpawnCounter {
         val roiMat = Mat(mat, roi)
 
         bgSubtractor.apply(roiMat, binaryMat)
-        Imgproc.erode(binaryMat, binaryMat, kernel, Point(0.0, 0.0), 3)
+        Imgproc.erode(binaryMat, binaryMat, erodeKernel, Point(0.0, 0.0), erodeIterations)
 
         val red = Scalar(255.0, 0.0, 0.0, 255.0)
         val green = Scalar(0.0, 255.0, 0.0, 255.0)
@@ -113,7 +118,49 @@ class SpawnCounter {
                 3,
             )
         }
+
+        Imgproc.putText(
+            mat,
+            "Kernel: ${erodeKernel.size().width}",
+            Point(10.0, 30.0),
+            Imgproc.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            green,
+            3,
+        )
+        Imgproc.putText(
+            mat,
+            "Iterations: $erodeIterations",
+            Point(10.0, 80.0),
+            Imgproc.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            green,
+            3,
+        )
+        Imgproc.putText(
+            mat,
+            "Threshold: $minContourAreaThreshold",
+            Point(10.0, 130.0),
+            Imgproc.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            green,
+            3,
+        )
+
+        Imgproc.putText(
+            binaryMat,
+            "Kernel:",
+            Point(1.0, 5.0),
+            Imgproc.FONT_HERSHEY_SIMPLEX,
+            0.3,
+            Scalar(255.0),
+            1,
+        )
+
+        Imgproc.rectangle(binaryMat, Rect(40, 1, erodeKernel.width(), erodeKernel.height()), Scalar(255.0), -1)
     }
+
+
 
     class Counter(private val numThresholds: Int, roiWidth: Int) {
         val thresholds: MutableList<Int> = MutableList(numThresholds) {0}

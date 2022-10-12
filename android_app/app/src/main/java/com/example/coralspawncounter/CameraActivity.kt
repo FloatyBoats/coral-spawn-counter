@@ -76,7 +76,11 @@ class CameraActivity : AppCompatActivity() {
         }
 
         cameraExecutor = Executors.newSingleThreadExecutor()
-        
+
+        viewBinding.SliderErodeKernelSize.addOnChangeListener { _, value, _ ->  counter.setErodeKernelSize(value.toDouble())}
+        viewBinding.SliderErodeIterations.addOnChangeListener { _, value, _ ->  counter.erodeIterations = value.toInt()}
+        viewBinding.SliderMinAreaThreshold.addOnChangeListener { _, value, _ ->  counter.minContourAreaThreshold = value.toInt()}
+
         viewBinding.SliderROIHorizontal.addOnChangeListener {
             slider, _, _ -> counter.setROIHorizontal(slider.values[0].toInt(), slider.values[1].toInt())
         }
@@ -85,6 +89,9 @@ class CameraActivity : AppCompatActivity() {
             slider, _, _ -> counter.setROIVertical(slider.values[0].toInt(), slider.values[1].toInt())
         }
 
+        counter.setErodeKernelSize(viewBinding.SliderErodeKernelSize.value.toDouble())
+        counter.erodeIterations = viewBinding.SliderErodeIterations.value.toInt()
+        counter.minContourAreaThreshold = viewBinding.SliderMinAreaThreshold.value.toInt()
         counter.setROIHorizontal(viewBinding.SliderROIHorizontal.values[0].toInt(), viewBinding.SliderROIHorizontal.values[1].toInt())
         counter.setROIVertical(viewBinding.SliderROIVertical.values[0].toInt(), viewBinding.SliderROIVertical.values[1].toInt())
 
