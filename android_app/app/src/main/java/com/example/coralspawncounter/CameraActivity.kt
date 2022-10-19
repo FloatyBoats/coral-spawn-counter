@@ -2,6 +2,7 @@ package com.example.coralspawncounter
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -10,6 +11,7 @@ import android.media.Image
 import android.media.MediaRecorder
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.util.Size
 import android.view.Surface
@@ -20,6 +22,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.core.FocusMeteringAction.FLAG_AF
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.MediaStoreOutputOptions
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.coralspawncounter.databinding.ActivityCameraBinding
@@ -53,11 +59,14 @@ fun convertRGBAtoMat(img: Image?): Mat? {
 
 class CameraActivity : AppCompatActivity() {
     private lateinit var viewBinding: ActivityCameraBinding
-    private lateinit var cameraExecutor: ExecutorService
+    private lateinit var analysisExecutor: ExecutorService
+    private lateinit var recordingExecutor: ExecutorService
     private lateinit var camera: Camera
     private var counter: SpawnCounter
     private lateinit var mediaRecorder: MediaRecorder
     private var recorderSurface: Surface? = null
+    private lateinit var videoCapture: VideoCapture<Recorder>
+    private var activeRecording: Recording? = null
 
     init {
         OpenCVLoader.initDebug()
@@ -75,7 +84,8 @@ class CameraActivity : AppCompatActivity() {
                 this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
 
-        cameraExecutor = Executors.newSingleThreadExecutor()
+        analysisExecutor = Executors.newSingleThreadExecutor()
+        recordingExecutor = Executors.newSingleThreadExecutor()
 
         viewBinding.SliderErodeKernelSize.addOnChangeListener { _, value, _ ->  counter.setErodeKernelSize(value.toDouble())}
         viewBinding.SliderErodeIterations.addOnChangeListener { _, value, _ ->  counter.erodeIterations = value.toInt()}
@@ -101,28 +111,47 @@ class CameraActivity : AppCompatActivity() {
 
     @SuppressLint("SimpleDateFormat")
     private fun startRecording() {
-        val dirPath = baseContext.getExternalFilesDir(Environment.DIRECTORY_DCIM)
         val formatter = SimpleDateFormat("yyyyMMdd_HHmmss")
         val timestamp: String = formatter.format(Date())
 
-        val file = File(dirPath, "${timestamp}.mp4")
+        val rawName = "${timestamp}_raw.mp4"
+        val processedName = "${timestamp}_processed.mp4"
+
+        val rawContentValues = ContentValues().apply {
+            put(MediaStore.Video.Media.DISPLAY_NAME, rawName)
+        }
+
+         val outputFile = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), processedName);
+
         mediaRecorder = MediaRecorder()
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        mediaRecorder.setOutputFile(file.absolutePath)
-        mediaRecorder.setVideoEncodingBitRate(1000000)
+        mediaRecorder.setOutputFile(outputFile)
+        mediaRecorder.setVideoEncodingBitRate(10000000)
         mediaRecorder.setVideoFrameRate(30)
         mediaRecorder.setVideoSize(viewBinding.surfaceView.width, viewBinding.surfaceView.height)
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
         mediaRecorder.prepare()
         mediaRecorder.start()
         recorderSurface = mediaRecorder.surface
+
+        val mediaStoreOutput = MediaStoreOutputOptions.Builder(this.contentResolver,
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+            .setContentValues(rawContentValues)
+            .build()
+
+        activeRecording = videoCapture.output
+            .prepareRecording(baseContext, mediaStoreOutput)
+            .start(ContextCompat.getMainExecutor(this)) {}
     }
 
     private fun stopRecording() {
         recorderSurface = null
         mediaRecorder.stop()
         mediaRecorder.release()
+
+        activeRecording?.stop()
+        activeRecording = null
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -138,8 +167,16 @@ class CameraActivity : AppCompatActivity() {
                 .setTargetResolution(Size(1920, 1080))
                 .build()
                 .also {
-                    it.setAnalyzer(cameraExecutor, SpawnCountAnalyzer())
+                    it.setAnalyzer(analysisExecutor, SpawnCountAnalyzer())
                 }
+
+            val recorder = Recorder.Builder()
+            .setExecutor(analysisExecutor)
+            .setQualitySelector(getHighestSupportedQuality(cameraProvider))
+            .build()
+
+            videoCapture = VideoCapture.withOutput(recorder)
+
 
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
@@ -150,7 +187,7 @@ class CameraActivity : AppCompatActivity() {
 
                 // Bind use cases to camera
                 camera = cameraProvider.bindToLifecycle(
-                    this, cameraSelector, imageAnalyzer)
+                    this, cameraSelector, imageAnalyzer, videoCapture)
 
                 val exposureState = camera.cameraInfo.exposureState
 
@@ -209,7 +246,8 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        cameraExecutor.shutdown()
+        analysisExecutor.shutdown()
+        recordingExecutor.shutdown()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
