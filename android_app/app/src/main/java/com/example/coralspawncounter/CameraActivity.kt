@@ -105,7 +105,17 @@ class CameraActivity : AppCompatActivity() {
         counter.setROIHorizontal(viewBinding.SliderROIHorizontal.values[0].toInt(), viewBinding.SliderROIHorizontal.values[1].toInt())
         counter.setROIVertical(viewBinding.SliderROIVertical.values[0].toInt(), viewBinding.SliderROIVertical.values[1].toInt())
 
-        viewBinding.SwitchCount.setOnCheckedChangeListener { _, isChecked -> counter.doCount = isChecked; if (isChecked) {startRecording()} else {stopRecording()} }
+        viewBinding.ButtonCountAndRecord.setOnClickListener {
+            if (activeRecording == null) {
+                counter.doCount = true
+                startRecording()
+                viewBinding.ButtonCountAndRecord.text = "Stop and Save"
+            } else {
+                counter.doCount = false
+                stopRecording()
+                viewBinding.ButtonCountAndRecord.text = "Count and Record"
+            }
+        }
         viewBinding.ButtonReset.setOnClickListener { counter.counter.reset() }
     }
 
