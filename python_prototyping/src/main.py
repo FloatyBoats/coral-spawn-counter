@@ -1,20 +1,14 @@
 from dataclasses import dataclass
-from math import sqrt
 
 import cv2 as cv
 import numpy as np
 
 from video_source import VideoSource
-from contours import detect_contours, contour_center, Point
+from contours import detect_contours, contour_center
 from counters import ThresholdTracker
-from colours import Colour, rand_colour, BLUE
+from colours import Colour, rand_colour
 
 from typing import Any
-
-def dist(a: Point, b: Point) -> float:
-    ax, ay = a
-    bx, by = b
-    return sqrt((ax-bx)**2 + (ay-by)**2)
 
 # vid_src = VideoSource(
 #     vid_path="../../real_data/PXL_20220817_055451873.mp4",
@@ -49,51 +43,18 @@ vid_src = VideoSource(
 #     roi=((400, 520), (500, 1500)),
 # )
 
-
-class SpawnTrack:    
-    _tracker: cv.TrackerCSRT
-    
+@dataclass
+class SpawnTrack:
+    tracker: cv.TrackerCSRT
     colour: Colour
-    x: int
-    y: int
-    width: int
-    height: int
-
-    x_vel: int
-    y_vel: int
-
-    def __init__(self, frame: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
-        self._tracker = cv.TrackerCSRT_create()
-        self._tracker.init(frame, bbox)
-        self.colour = rand_colour()
-        self.x, self.y, self.width, self.height = bbox
-
-    def update(self, frame: np.ndarray) -> bool:
-        prev_x = self.x
-        prev_y = self.y
-        ok, (self.x, self.y, self.width, self.height) = self._tracker.update(frame)
-        self.x_vel = self.x - prev_x
-        self.y_vel = self.y - prev_y
-        return ok
-
-    @property
-    def p1(self) -> tuple[int, int]:
-        return self.x, self.y
-
-    @property
-    def p2(self) -> tuple[int, int]:
-        return self.x + self.width, self.y + self.height
-
-    @property
-    def center(self) -> tuple[int, int]:
-        return int(round(self.x + self.width/2)), int(round(self.y + self.height/2))
 
 
 counter = ThresholdTracker(thresholds=[200, 400, 600, 800])
+# tracker = cv.TrackerCSRT_create()
 spawn_tracks: list[SpawnTrack] = []
 
 bg_subtractor = cv.createBackgroundSubtractorMOG2(detectShadows=False)
-erode_kernel = np.ones((3, 3),np.uint8)
+erode_kernel = np.ones((5, 5),np.uint8)
 
 # warm up the background detector
 for _ in range(2):
@@ -113,13 +74,13 @@ while True:
 
     to_remove = []
     for spawn_track in spawn_tracks:
-        ok = spawn_track.update(frame)
-        # print(spawn_track.x_vel)
-        if spawn_track.x > 900 or spawn_track.x_vel < 5:
+        ok, (x, y, w, h) = spawn_track.tracker.update(frame)
+        if x > 900:
             to_remove.append(spawn_track)
         elif ok:
-            cv.rectangle(out_frame, spawn_track.p1, spawn_track.p2, spawn_track.colour, 2, 1)
-    # print("===================================================================")
+            p1 = (x, y)  
+            p2 = (x+w, y+h)
+            cv.rectangle(out_frame, p1, p2, spawn_track.colour, 2, 1)
 
     for spawn_track in to_remove:
         spawn_tracks.remove(spawn_track)
@@ -137,18 +98,10 @@ while True:
 
     for contour in contours:
         x, y = contour_center(contour)
-        closest_dist = dist(min(spawn_tracks, key=lambda t: dist(t.center, (x, y))).center, (x, y)) if spawn_tracks else 1000
-        if closest_dist > 50:
-            cv.drawMarker(
-                out_frame,
-                (x, y),
-                BLUE,
-                cv.MARKER_TILTED_CROSS,
-                markerSize=20,
-                thickness=3,
-            )
+        if x < 100:
             bbox = cv.boundingRect(contour)
-            new_track = SpawnTrack(frame, bbox)
+            new_track = SpawnTrack(cv.TrackerCSRT_create(), rand_colour())
+            new_track.tracker.init(frame, bbox)
             spawn_tracks.append(new_track)
 
     # counter.update([contour_center(c) for c in contours], debug_img=out_frame)
