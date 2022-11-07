@@ -34,7 +34,7 @@ class SpawnCounter {
     private val bgSubtractor: BackgroundSubtractorMOG2 = Video.createBackgroundSubtractorMOG2(500, 16.0, false)
     private val roi = Rect(0, 0, 0, 0)
     val counter = Counter(3, roi.width)
-    private var erodeKernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(1.0, 1.0))
+    var erodeKernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(1.0, 1.0))
     var minContourAreaThreshold = 10
     var doCount = false
     var erodeIterations = 1;

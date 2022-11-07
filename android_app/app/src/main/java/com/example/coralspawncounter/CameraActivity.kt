@@ -9,8 +9,10 @@ import android.graphics.Color
 import android.graphics.Rect
 import android.media.Image
 import android.media.MediaRecorder
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import android.util.Log
 import android.util.Size
@@ -34,11 +36,16 @@ import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import java.io.File
+import java.net.URI
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+fun getLogCSV(): File {
+    val filename = "coral_spawn_counter_logs.csv"
+    return File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), filename);
+}
 
 fun convertRGBAtoMat(img: Image?): Mat? {
     if (img == null) {
@@ -67,6 +74,11 @@ class CameraActivity : AppCompatActivity() {
     private var recorderSurface: Surface? = null
     private lateinit var videoCapture: VideoCapture<Recorder>
     private var activeRecording: Recording? = null
+    private var timestamp: String = ""
+    private var rawName: String = ""
+    private var processedName: String = ""
+    private lateinit var processedVideoFile: ParcelFileDescriptor
+    private lateinit var processedVideoURI: Uri
 
     init {
         OpenCVLoader.initDebug()
@@ -117,26 +129,42 @@ class CameraActivity : AppCompatActivity() {
             }
         }
         viewBinding.ButtonReset.setOnClickListener { counter.counter.reset() }
+
+//        val file = getLogCSV();
+//        if (file.length() == 0L) {
+//            file.writeText("timestamp, notes, raw_file, processed_file, count_1, count_2, count_3, kernel, iterations, threshold\n")
+//        }
+//
+//        file.writeText(
+//            "${timestamp}, testing!!!, ${rawName}, ${processedName}, ${counter.counter.thresholdCounts[0]}, ${counter.counter.thresholdCounts[1]}, ${counter.counter.thresholdCounts[2]}, ${counter.erodeKernel.width()}, ${counter.erodeIterations}, ${counter.minContourAreaThreshold}"
+//        )
     }
 
     @SuppressLint("SimpleDateFormat")
     private fun startRecording() {
         val formatter = SimpleDateFormat("yyyyMMdd_HHmmss")
-        val timestamp: String = formatter.format(Date())
+        timestamp = formatter.format(Date())
 
-        val rawName = "${timestamp}_raw.mp4"
-        val processedName = "${timestamp}_processed.mp4"
+        rawName = "${timestamp}_raw.mp4"
+        processedName = "${timestamp}_processed.mp4"
 
         val rawContentValues = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, rawName)
         }
+
+        val processedContentValues = ContentValues().apply {
+            put(MediaStore.Video.Media.DISPLAY_NAME, processedName)
+        }
+
+        processedVideoURI = this.contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, processedContentValues)!!
+        processedVideoFile = this.contentResolver.openFileDescriptor(processedVideoURI, "w", null)!!
 
          val outputFile = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), processedName);
 
         mediaRecorder = MediaRecorder()
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        mediaRecorder.setOutputFile(outputFile)
+        mediaRecorder.setOutputFile(processedVideoFile.fileDescriptor)
         mediaRecorder.setVideoEncodingBitRate(10000000)
         mediaRecorder.setVideoFrameRate(30)
         mediaRecorder.setVideoSize(viewBinding.surfaceView.width, viewBinding.surfaceView.height)
@@ -162,6 +190,8 @@ class CameraActivity : AppCompatActivity() {
 
         activeRecording?.stop()
         activeRecording = null
+
+        processedVideoFile.close()
     }
 
     @SuppressLint("ClickableViewAccessibility")
