@@ -49,24 +49,31 @@ vid_src = VideoSource(
 #     roi=((400, 520), (500, 1500)),
 # )
 
-
 class SpawnTrack:    
-    _tracker: cv.TrackerCSRT
+    KF: Any
     
     colour: Colour
-    x: int
-    y: int
-    width: int
-    height: int
 
-    x_vel: int
-    y_vel: int
+    def __init__(self, bbox: tuple[int, int, int, int]) -> None:
+        x, y, width, height = bbox
+        center_x, center_y = int(round(x + width/2)), int(round(y + height/2))
+        self.KF = cv.KalmanFilter(4, 4)
+        self.KF.transitionMatrix = np.array([[1, 0, 1, 0], [0, 1, 0, 1], [0, 0, 1, 0], [0, 0, 0, 1]], np.float32)
+        self.KF.statePost = np.array(
+            [
+                [center_x],  # x
+                [center_y],  # y
+                [0],  # dx
+                [0]  # dy
+            ],
+            np.float32
+        )
+        self.KF.measurementMatrix = np.identity(4)
+        self.KF.processNoiseCov = np.identity(4)*1e-5
+        self.KF.measurementNoiseCov = np.identity(4)*1e-1;
+        self.KF.errorCovPost = np.identity(4)*1e-1;
 
-    def __init__(self, frame: np.ndarray, bbox: tuple[int, int, int, int]) -> None:
-        self._tracker = cv.TrackerCSRT_create()
-        self._tracker.init(frame, bbox)
         self.colour = rand_colour()
-        self.x, self.y, self.width, self.height = bbox
 
     def update(self, frame: np.ndarray) -> bool:
         prev_x = self.x
