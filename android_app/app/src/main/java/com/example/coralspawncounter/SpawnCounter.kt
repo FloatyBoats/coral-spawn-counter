@@ -33,7 +33,7 @@ fun euclideanDist(p1: Point, p2: Point): Double {
 class SpawnCounter {
     private val bgSubtractor: BackgroundSubtractorMOG2 = Video.createBackgroundSubtractorMOG2(500, 16.0, false)
     private val roi = Rect(0, 0, 0, 0)
-    val counter = Counter(3, roi.width)
+    val counter = Counter(2, roi.width)
     private var erodeKernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(1.0, 1.0))
     var minContourAreaThreshold = 10
     var doCount = false
@@ -186,7 +186,7 @@ class SpawnCounter {
         fun update(points: List<Point>): List<Point> {
             val countedPoints = mutableListOf<Point>()
             for (point in points) {
-                val candidatePoints = previousPoints.filter { it.x < point.x && euclideanDist(point, it) < 150}
+                val candidatePoints = previousPoints.filter { it.x < point.x && euclideanDist(point, it) < 100}
                 val closestPrevPoint = candidatePoints.minByOrNull { euclideanDist(point, it) } ?: continue
                 previousPoints.remove(closestPrevPoint)
                 for ((i, threshold) in thresholds.withIndex()) {

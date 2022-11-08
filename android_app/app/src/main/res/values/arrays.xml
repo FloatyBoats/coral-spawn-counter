@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="slider_roi_horizontal_initial_values">
-        <item>700</item>
-        <item>1220</item>
+        <item>600</item>
+        <item>1320</item>
     </array>
     <array name="slider_roi_vertical_initial_values">
         <item>500</item>
