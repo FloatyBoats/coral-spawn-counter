@@ -4,7 +4,7 @@ import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.opencv.video.BackgroundSubtractorMOG2
 import org.opencv.video.Video
-import kotlin.math.abs
+import kotlin.math.pow
 import kotlin.math.round
 
 fun contourCenter(contour: MatOfPoint): Point {
@@ -26,14 +26,14 @@ fun detectContours(binaryMat: Mat, minAreaThreshold: Int? = null): List<MatOfPoi
     return contours
 }
 
-fun manhattanDist(p1: Point, p2: Point): Double {
-    return abs(p1.x - p2.x) + abs(p1.y - p2.y)
+fun euclideanDist(p1: Point, p2: Point): Double {
+    return kotlin.math.sqrt((p1.x - p2.x).pow(2.0) + (p1.y - p2.y).pow(2.0))
 }
 
 class SpawnCounter {
     private val bgSubtractor: BackgroundSubtractorMOG2 = Video.createBackgroundSubtractorMOG2(500, 16.0, false)
     private val roi = Rect(0, 0, 0, 0)
-    val counter = Counter(3, roi.width)
+    val counter = Counter(2, roi.width)
     private var erodeKernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(1.0, 1.0))
     var minContourAreaThreshold = 10
     var doCount = false
@@ -170,7 +170,7 @@ class SpawnCounter {
         }
 
         val thresholdCounts = MutableList(numThresholds) {0}
-        private var previousPoints = listOf<Point>()
+        private var previousPoints = mutableListOf<Point>()
 
         fun updateROI(roiWidth: Int) {
             val interval = roiWidth / (numThresholds + 1)
@@ -185,23 +185,20 @@ class SpawnCounter {
 
         fun update(points: List<Point>): List<Point> {
             val countedPoints = mutableListOf<Point>()
-            for ((i, threshold) in thresholds.withIndex()) {
-                val countablePoints = points.filter { point -> point.x > threshold }
-                for (point in countablePoints) {
-                    for (prevPoint in previousPoints) {
-                        val movedRight = prevPoint.x < point.x
-                        val closeEnough = manhattanDist(point, prevPoint) < 200
-                        val crossedThreshold = prevPoint.x <= threshold
-                        if (movedRight && closeEnough && crossedThreshold) {
-                            // count it!
-                            thresholdCounts[i]++
-                            countedPoints.add(point)
-                            break
-                        }
+            for (point in points) {
+                val candidatePoints = previousPoints.filter { it.x < point.x && euclideanDist(point, it) < 100}
+                val closestPrevPoint = candidatePoints.minByOrNull { euclideanDist(point, it) } ?: continue
+                previousPoints.remove(closestPrevPoint)
+                for ((i, threshold) in thresholds.withIndex()) {
+                    if(closestPrevPoint.x <= threshold && threshold < point.x) {
+                        // count it!
+                        thresholdCounts[i]++
+                        countedPoints.add(point)
+                        break
                     }
                 }
             }
-            previousPoints = points
+            previousPoints = points as MutableList<Point>
             return countedPoints
         }
     }
