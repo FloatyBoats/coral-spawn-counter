@@ -38,6 +38,7 @@ class SpawnCounter {
     var minContourAreaThreshold = 10
     var doCount = false
     var erodeIterations = 1;
+    var fiveMMpx = 100;
 
     fun setErodeKernelSize(size: Double) {
         erodeKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(size, size))
@@ -146,6 +147,17 @@ class SpawnCounter {
             green,
             3,
         )
+        Imgproc.putText(
+            mat,
+            "5mm=${fiveMMpx}px",
+            Point(roi.x.toDouble(), roi.y.toDouble() - 100.0),
+            Imgproc.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            green,
+            3,
+        )
+        Imgproc.line(mat, Point(roi.x.toDouble(), roi.y.toDouble() - 80.0), Point(roi.x.toDouble() + fiveMMpx, roi.y.toDouble() - 80.0), green, 2)
+
 
         Imgproc.putText(
             binaryMat,
@@ -156,7 +168,6 @@ class SpawnCounter {
             Scalar(255.0),
             1,
         )
-
         Imgproc.rectangle(binaryMat, Rect(40, 1, erodeKernel.width(), erodeKernel.height()), Scalar(255.0), -1)
     }
 

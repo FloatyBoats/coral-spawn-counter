@@ -58,7 +58,8 @@
             android:layout_height="wrap_content"
             android:valueFrom="1"
             android:valueTo="21"
-            android:stepSize="2"/>
+            android:stepSize="2"
+            android:value="3"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -84,7 +85,22 @@
             android:layout_height="wrap_content"
             android:valueFrom="0"
             android:valueTo="100"
-            android:stepSize="2"/>
+            android:stepSize="2"
+            android:value="50"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="5mm Px Size" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/SliderFiveMMPx"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="1"
+            android:valueTo="200"
+            android:stepSize="1"
+            android:value="100"/>
 
         <TextView
             android:layout_width="match_parent"
