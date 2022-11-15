@@ -1,9 +1,11 @@
 package com.example.coralspawncounter
 
+import androidx.core.graphics.component1
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.opencv.video.BackgroundSubtractorMOG2
 import org.opencv.video.Video
+import kotlin.math.PI
 import kotlin.math.pow
 import kotlin.math.round
 
@@ -35,10 +37,12 @@ class SpawnCounter {
     private val roi = Rect(0, 0, 0, 0)
     val counter = Counter(2, roi.width)
     private var erodeKernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(1.0, 1.0))
-    var minContourAreaThreshold = 10
+    private var minContourAreaPxThreshold = 0
+    var minDiameterThresholdUM = 10
+
     var doCount = false
-    var erodeIterations = 1;
-    var fiveMMpx = 100;
+    var erodeIterations = 1
+    var fiveMMpx = 100
 
     fun setErodeKernelSize(size: Double) {
         erodeKernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(size, size))
@@ -55,6 +59,10 @@ class SpawnCounter {
         roi.height = end - start
     }
 
+    private fun convertUMtoPx(valueUM: Double): Double {
+        return valueUM * (fiveMMpx/5000.0)
+    }
+
     fun nextImage(mat: Mat, binaryMat: Mat) {
         val roiMat = Mat(mat, roi)
 
@@ -65,7 +73,8 @@ class SpawnCounter {
         val green = Scalar(0.0, 255.0, 0.0, 255.0)
         val blue = Scalar(0.0, 0.0, 255.0, 255.0)
 
-        val contours = detectContours(binaryMat, minContourAreaThreshold)
+        minContourAreaPxThreshold = round((convertUMtoPx(minDiameterThresholdUM/2.0).pow(2) * PI)).toInt()
+        val contours = detectContours(binaryMat, minContourAreaPxThreshold)
         val contourCenters = contours.map { contour -> contourCenter(contour) }.filter { point -> !point.x.isNaN() && !point.y.isNaN() }
         contourCenters.forEach {
             center -> Imgproc.drawMarker(
@@ -122,7 +131,7 @@ class SpawnCounter {
 
         Imgproc.putText(
             mat,
-            "Kernel: ${erodeKernel.size().width}",
+            "Kernel: ${erodeKernel.size().width.toInt()}x${erodeKernel.size().height.toInt()} px",
             Point(10.0, 30.0),
             Imgproc.FONT_HERSHEY_SIMPLEX,
             1.0,
@@ -140,8 +149,17 @@ class SpawnCounter {
         )
         Imgproc.putText(
             mat,
-            "Threshold: $minContourAreaThreshold",
+            "Min Area Threshold: ${minContourAreaPxThreshold}px",
             Point(10.0, 130.0),
+            Imgproc.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            green,
+            3,
+        )
+        Imgproc.putText(
+            mat,
+            "Min Diameter: ${minDiameterThresholdUM}um",
+            Point(10.0, 180.0),
             Imgproc.FONT_HERSHEY_SIMPLEX,
             1.0,
             green,
@@ -157,6 +175,7 @@ class SpawnCounter {
             3,
         )
         Imgproc.line(mat, Point(roi.x.toDouble(), roi.y.toDouble() - 80.0), Point(roi.x.toDouble() + fiveMMpx, roi.y.toDouble() - 80.0), green, 2)
+//        Imgproc.circle()
 
 
         Imgproc.putText(
