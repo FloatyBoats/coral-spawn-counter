@@ -130,6 +130,24 @@
             android:stepSize="2"
             app:values="@array/slider_roi_vertical_initial_values"/>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Notes" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/Notes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:endIconMode="clear_text">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/ButtonCountAndRecord"
             android:layout_width="wrap_content"

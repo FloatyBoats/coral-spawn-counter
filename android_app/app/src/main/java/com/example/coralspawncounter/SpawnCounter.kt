@@ -39,6 +39,7 @@ class SpawnCounter {
     private var erodeKernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(1.0, 1.0))
     private var minContourAreaPxThreshold = 0
     var minDiameterThresholdUM = 10
+    var notes = ""
 
     var doCount = false
     var erodeIterations = 1
@@ -73,7 +74,8 @@ class SpawnCounter {
         val green = Scalar(0.0, 255.0, 0.0, 255.0)
         val blue = Scalar(0.0, 0.0, 255.0, 255.0)
 
-        minContourAreaPxThreshold = round((convertUMtoPx(minDiameterThresholdUM/2.0).pow(2) * PI)).toInt()
+        val pxMinRadius = convertUMtoPx(minDiameterThresholdUM/2.0)
+        minContourAreaPxThreshold = round((pxMinRadius.pow(2) * PI)).toInt()
         val contours = detectContours(binaryMat, minContourAreaPxThreshold)
         val contourCenters = contours.map { contour -> contourCenter(contour) }.filter { point -> !point.x.isNaN() && !point.y.isNaN() }
         contourCenters.forEach {
@@ -167,16 +169,35 @@ class SpawnCounter {
         )
         Imgproc.putText(
             mat,
-            "5mm=${fiveMMpx}px",
-            Point(roi.x.toDouble(), roi.y.toDouble() - 100.0),
+            "Notes:",
+            Point(10.0, 230.0),
             Imgproc.FONT_HERSHEY_SIMPLEX,
             1.0,
             green,
             3,
         )
-        Imgproc.line(mat, Point(roi.x.toDouble(), roi.y.toDouble() - 80.0), Point(roi.x.toDouble() + fiveMMpx, roi.y.toDouble() - 80.0), green, 2)
-//        Imgproc.circle()
+        Imgproc.putText(
+            mat,
+            notes,
+            Point(10.0, 280.0),
+            Imgproc.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            green,
+            3,
+        )
 
+        Imgproc.circle(mat, Point(roi.x + pxMinRadius, roi.y - pxMinRadius - 20), round(pxMinRadius).toInt(), green, 2)
+
+        Imgproc.putText(
+            mat,
+            "5mm=${fiveMMpx}px",
+            Point(roi.x.toDouble(), roi.y - pxMinRadius*2 - 60),
+            Imgproc.FONT_HERSHEY_SIMPLEX,
+            1.0,
+            green,
+            3,
+        )
+        Imgproc.line(mat, Point(roi.x.toDouble(), roi.y - pxMinRadius*2 - 40), Point(roi.x.toDouble() + fiveMMpx, roi.y - pxMinRadius*2 - 40), green, 2)
 
         Imgproc.putText(
             binaryMat,

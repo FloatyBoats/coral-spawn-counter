@@ -28,6 +28,7 @@ import androidx.camera.video.Recording
 import androidx.camera.video.VideoCapture
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doOnTextChanged
 import com.example.coralspawncounter.databinding.ActivityCameraBinding
 import org.opencv.android.OpenCVLoader
 import org.opencv.android.Utils
@@ -91,6 +92,8 @@ class CameraActivity : AppCompatActivity() {
         viewBinding.SliderErodeIterations.addOnChangeListener { _, value, _ ->  counter.erodeIterations = value.toInt()}
         viewBinding.SliderMinDiameterThreshold.addOnChangeListener { _, value, _ ->  counter.minDiameterThresholdUM = value.toInt()}
         viewBinding.SliderFiveMMPx.addOnChangeListener { _, value, _ ->  counter.fiveMMpx = value.toInt()}
+        viewBinding.Notes.editText?.doOnTextChanged { text, start, before, count -> counter.notes = text.toString() }
+
 
         viewBinding.SliderROIHorizontal.addOnChangeListener {
             slider, _, _ -> counter.setROIHorizontal(slider.values[0].toInt(), slider.values[1].toInt())
