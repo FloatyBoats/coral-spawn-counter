@@ -25,141 +25,143 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <ScrollView
         android:id="@+id/linearLayoutControls"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/linearLayoutViews"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintHorizontal_weight="1">
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Exposure" />
-
-
-        <SeekBar
-            android:id="@+id/seekBarExposure"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Erode Kernel Size (px)" />
-
-        <com.google.android.material.slider.Slider
-            android:id="@+id/SliderErodeKernelSize"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:valueFrom="1"
-            android:valueTo="21"
-            android:stepSize="2"
-            android:value="3"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Erode Iterations" />
-
-        <com.google.android.material.slider.Slider
-            android:id="@+id/SliderErodeIterations"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:valueFrom="1"
-            android:valueTo="5"
-            android:stepSize="1"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="5mm px Size" />
-
-        <com.google.android.material.slider.Slider
-            android:id="@+id/SliderFiveMMPx"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:valueFrom="1"
-            android:valueTo="200"
-            android:stepSize="1"
-            android:value="100"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Min Diameter Threshold (µm)" />
-
-        <com.google.android.material.slider.Slider
-            android:id="@+id/SliderMinDiameterThreshold"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:valueFrom="0"
-            android:valueTo="1000"
-            android:stepSize="100"
-            android:value="500"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ROI Horizontal (px)" />
-
-        <com.google.android.material.slider.RangeSlider
-            android:id="@+id/SliderROIHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:valueFrom="0"
-            android:valueTo="1920"
-            android:stepSize="2"
-            app:values="@array/slider_roi_horizontal_initial_values" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="ROI Vertical (px)" />
-
-        <com.google.android.material.slider.RangeSlider
-            android:id="@+id/SliderROIVertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:valueFrom="0"
-            android:valueTo="1080"
-            android:stepSize="2"
-            app:values="@array/slider_roi_vertical_initial_values"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Notes" />
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/Notes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:endIconMode="clear_text">
-
-            <com.google.android.material.textfield.TextInputEditText
+            android:orientation="vertical">
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="text"/>
-
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/ButtonCountAndRecord"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Count and Record" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/ButtonReset"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Reset Count" />
+                android:text="Exposure" />
 
 
-    </LinearLayout>
+            <SeekBar
+                android:id="@+id/seekBarExposure"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Erode Kernel Size (px)" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/SliderErodeKernelSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="1"
+                android:valueTo="21"
+                android:stepSize="2"
+                android:value="3"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Erode Iterations" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/SliderErodeIterations"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="1"
+                android:valueTo="5"
+                android:stepSize="1"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="5mm px Size" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/SliderFiveMMPx"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="1"
+                android:valueTo="200"
+                android:stepSize="1"
+                android:value="100"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Min Diameter Threshold (µm)" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/SliderMinDiameterThreshold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="0"
+                android:valueTo="1000"
+                android:stepSize="100"
+                android:value="500"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ROI Horizontal (px)" />
+
+            <com.google.android.material.slider.RangeSlider
+                android:id="@+id/SliderROIHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="0"
+                android:valueTo="1920"
+                android:stepSize="2"
+                app:values="@array/slider_roi_horizontal_initial_values" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ROI Vertical (px)" />
+
+            <com.google.android.material.slider.RangeSlider
+                android:id="@+id/SliderROIVertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="0"
+                android:valueTo="1080"
+                android:stepSize="2"
+                app:values="@array/slider_roi_vertical_initial_values"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Notes" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/Notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:endIconMode="clear_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/ButtonCountAndRecord"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Count and Record" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/ButtonReset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reset Count" />
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
