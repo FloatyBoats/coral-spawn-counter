@@ -187,7 +187,7 @@ class CameraActivity : AppCompatActivity() {
 
             val recorder = Recorder.Builder()
             .setExecutor(analysisExecutor)
-//            .setQualitySelector(getHighestSupportedQuality(cameraProvider))
+            .setQualitySelector(getHighestSupportedQuality(cameraProvider))
             .build()
 
             videoCapture = VideoCapture.withOutput(recorder)

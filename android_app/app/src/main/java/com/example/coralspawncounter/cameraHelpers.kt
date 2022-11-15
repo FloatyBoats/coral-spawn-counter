@@ -18,6 +18,6 @@ fun getHighestSupportedQuality(cameraProvider: ProcessCameraProvider) : QualityS
     }
 
     val supportedQualities = QualitySelector.getSupportedQualities(cameraInfo[0])
-    val filteredQualities = arrayListOf (Quality.UHD, Quality.FHD, Quality.HD, Quality.SD).filter { supportedQualities.contains(it) }
+    val filteredQualities = arrayListOf (Quality.FHD, Quality.HD, Quality.SD).filter { supportedQualities.contains(it) }
     return QualitySelector.from(filteredQualities.first());
 }
