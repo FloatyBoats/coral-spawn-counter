@@ -103,7 +103,7 @@
                 android:valueFrom="0"
                 android:valueTo="1000"
                 android:stepSize="100"
-                android:value="500"/>
+                android:value="200"/>
 
             <TextView
                 android:layout_width="match_parent"

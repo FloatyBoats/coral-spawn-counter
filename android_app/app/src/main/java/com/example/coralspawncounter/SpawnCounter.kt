@@ -1,13 +1,12 @@
 package com.example.coralspawncounter
 
-import androidx.core.graphics.component1
+import android.R.attr.src
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.opencv.video.BackgroundSubtractorMOG2
 import org.opencv.video.Video
-import kotlin.math.PI
-import kotlin.math.pow
-import kotlin.math.round
+import kotlin.math.*
+
 
 fun contourCenter(contour: MatOfPoint): Point {
     val moments = Imgproc.moments(contour, false)
@@ -32,10 +31,12 @@ fun euclideanDist(p1: Point, p2: Point): Double {
     return kotlin.math.sqrt((p1.x - p2.x).pow(2.0) + (p1.y - p2.y).pow(2.0))
 }
 
+data class CenterAndWidth(val center: Point, val width: Double)
+
 class SpawnCounter {
     private val bgSubtractor: BackgroundSubtractorMOG2 = Video.createBackgroundSubtractorMOG2(500, 16.0, false)
     private val roi = Rect(0, 0, 0, 0)
-    val counter = Counter(2, roi.width)
+    val counter = Counter(2, roi.width, 100, 100, 12)
     private var erodeKernel: Mat = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(1.0, 1.0))
     private var minContourAreaPxThreshold = 0
     var minDiameterThresholdUM = 10
@@ -64,6 +65,16 @@ class SpawnCounter {
         return valueUM * (fiveMMpx/5000.0)
     }
 
+    private fun convertPxtoUM(valuePx: Double): Double {
+        return valuePx / (fiveMMpx/5000.0)
+    }
+
+    private fun centerAndWidth(contour: MatOfPoint): CenterAndWidth {
+        val dst = MatOfPoint2f()
+        contour.convertTo(dst, CvType.CV_32F)
+        return CenterAndWidth(contourCenter(contour), convertPxtoUM(Imgproc.minAreaRect(dst).size.width))
+    }
+
     fun nextImage(mat: Mat, binaryMat: Mat) {
         val roiMat = Mat(mat, roi)
 
@@ -77,11 +88,12 @@ class SpawnCounter {
         val pxMinRadius = convertUMtoPx(minDiameterThresholdUM/2.0)
         minContourAreaPxThreshold = round((pxMinRadius.pow(2) * PI)).toInt()
         val contours = detectContours(binaryMat, minContourAreaPxThreshold)
-        val contourCenters = contours.map { contour -> contourCenter(contour) }.filter { point -> !point.x.isNaN() && !point.y.isNaN() }
+        val contourCenters = contours.map {centerAndWidth(it) }.filter { !it.center.x.isNaN() && !it.center.y.isNaN() }
+
         contourCenters.forEach {
-            center -> Imgproc.drawMarker(
+            Imgproc.drawMarker(
                 mat,
-                Point(roi.x + center.x, roi.y + center.y),
+                Point(roi.x + it.center.x, roi.y + it.center.y),
                 red,
                 Imgproc.MARKER_TILTED_CROSS,
                 20,
@@ -119,16 +131,30 @@ class SpawnCounter {
         }
 
         // draw counts above threshold vals
-        counter.thresholds.zip(counter.thresholdCounts).forEach {
-            (thresh, count) -> Imgproc.putText(
-                mat,
-                count.toString(),
-                Point(roi.x + thresh.toDouble(), roi.y - 15.0),
-                Imgproc.FONT_HERSHEY_SIMPLEX,
-                1.0,
-                green,
-                3,
-            )
+        counter.thresholds.zip(counter.thresholdHistCounts).forEach {
+            (thresh, hist) ->
+            run {
+                for(i in 0 until hist.binNum-1) {
+                    Imgproc.putText(
+                        mat,
+                        "[${hist.binUMLowerEdges[i]},${hist.binUMLowerEdges[i] + hist.binUMWidth}): ${hist.binCounts[i]}",
+                        Point(roi.x + thresh.toDouble(), roi.y - (30.0*i) - 15),
+                        Imgproc.FONT_HERSHEY_SIMPLEX,
+                        1.0,
+                        green,
+                        3,
+                    )
+                }
+                Imgproc.putText(
+                    mat,
+                    "[${hist.binUMLowerEdges[hist.binNum-1]},inf): ${hist.binCounts[hist.binNum-1]}",
+                    Point(roi.x + thresh.toDouble(), roi.y - (30.0*(hist.binNum-1)) - 15),
+                    Imgproc.FONT_HERSHEY_SIMPLEX,
+                    1.0,
+                    green,
+                    3,
+                )
+            }
         }
 
         Imgproc.putText(
@@ -213,14 +239,14 @@ class SpawnCounter {
 
 
 
-    class Counter(private val numThresholds: Int, roiWidth: Int) {
+    class Counter(private val numThresholds: Int, roiWidth: Int, binUMStart: Int, binUMWidth: Int, binNum: Int) {
         val thresholds: MutableList<Int> = MutableList(numThresholds) {0}
 
         init {
             updateROI(roiWidth)
         }
 
-        val thresholdCounts = MutableList(numThresholds) {0}
+        val thresholdHistCounts = MutableList(numThresholds) {Histogram(binUMStart, binUMWidth, binNum)}
         private var previousPoints = mutableListOf<Point>()
 
         fun updateROI(roiWidth: Int) {
@@ -231,26 +257,44 @@ class SpawnCounter {
         }
 
         fun reset() {
-            thresholdCounts.fill(0)
+            thresholdHistCounts.forEach {it.reset()}
         }
 
-        fun update(points: List<Point>): List<Point> {
+        fun update(contourCenters: List<CenterAndWidth>): List<Point> {
             val countedPoints = mutableListOf<Point>()
-            for (point in points) {
-                val candidatePoints = previousPoints.filter { it.x < point.x && euclideanDist(point, it) < 100}
-                val closestPrevPoint = candidatePoints.minByOrNull { euclideanDist(point, it) } ?: continue
+            for (contour in contourCenters) {
+//                val candidatePoints = previousPoints.filter { it.x < point.x && euclideanDist(point, it) < 200}
+                val candidatePoints = previousPoints.filter { it.x < contour.center.x}
+                val closestPrevPoint = candidatePoints.minByOrNull { euclideanDist(contour.center, it) } ?: continue
                 previousPoints.remove(closestPrevPoint)
                 for ((i, threshold) in thresholds.withIndex()) {
-                    if(closestPrevPoint.x <= threshold && threshold < point.x) {
+                    if(closestPrevPoint.x <= threshold && threshold < contour.center.x) {
                         // count it!
-                        thresholdCounts[i]++
-                        countedPoints.add(point)
+                        thresholdHistCounts[i].count(contour.width)
+                        countedPoints.add(contour.center)
                         break
                     }
                 }
             }
-            previousPoints = points as MutableList<Point>
+            previousPoints = contourCenters.map { it.center } as MutableList<Point>
             return countedPoints
+        }
+    }
+
+    class Histogram(val binUMStart: Int, val binUMWidth: Int, val binNum: Int) {
+        val binUMLowerEdges: List<Int> = (binUMStart until binUMStart+binUMWidth*binNum step binUMWidth).toList()
+        val binCounts: MutableList<Int> = MutableList(binNum) {0}
+
+        fun count(valueUM: Double) {
+            val idx = floor((valueUM - binUMStart) / binUMWidth).toInt()
+            if(idx < 1) {
+                return
+            }
+            binCounts[min(idx, binNum-1)]++
+        }
+
+        fun reset() {
+            binCounts.fill(0)
         }
     }
 }
