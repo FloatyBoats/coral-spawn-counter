@@ -6,7 +6,7 @@ from contours import detect_contours, contour_center
 from counters import ThresholdTracker
 
 vid_src = VideoSource(
-    vid_path="/home/alistair/Videos/Coral Spawn/Whitsundays/20221117_154038_raw.mp4",
+    vid_path="/home/alistair/Videos/Coral Spawn/Whitsundays/20221117_161027_raw.mp4",
     skip_frames=0,
     rotate_degrees=0,
     #       y -> y      x -> x
@@ -32,6 +32,8 @@ while True:
     except StopIteration:
         break
 
+    grey_frame = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
+
     # filter out the "background" - anything thats not moving (tube, etc)
     # leaving only particles in the water
     fg_mask = bg_subtractor.apply(frame)
@@ -41,16 +43,18 @@ while True:
     fg_mask = cv.erode(fg_mask, erode_kernel, iterations=1)
 
     # detect contours, filtering by area
-    contours = detect_contours(fg_mask, min_area_thresh=100, debug_img=frame)
+    contours = detect_contours(fg_mask, grey_frame, min_area_thresh=100, debug_img=frame)
 
-    counter.update([contour_center(c) for c in contours], debug_img=frame)
+    counter.update([contour_center(c) for c in contours], debug_img=grey_frame)
     counter.visualise(frame)
     
+    # if len(contours) < 1:
+    #     continue
 
     # cv.imshow("fg", fg_mask)
-    # cv.imshow("frame", frame)  
+    # cv.imshow("frame", grey_frame)
 
-    # if cv.waitKey(20) & 0xFF == ord('q'):
+    # if cv.waitKey(0) & 0xFF == ord('q'):
     #     # q to exit
     #     break
 
