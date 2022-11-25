@@ -20,13 +20,12 @@ def detect_contours(
 
     if debug_img is not None:
         for contour in contours:
-            cv.drawMarker(
+            cv.circle(
                 debug_img,
                 contour_center(contour),
+                30,
                 BLUE,
-                cv.MARKER_TILTED_CROSS,
-                markerSize=20,
-                thickness=3,
+                thickness=2,
             )
 
     return contours

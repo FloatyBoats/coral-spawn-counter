@@ -1,3 +1,5 @@
+from math import sqrt
+
 import cv2 as cv
 import numpy as np
 
@@ -6,8 +8,8 @@ from colours import GREEN, RED
 
 from typing import Optional
 
-def manhattan_dist(p1: Point, p2: Point) -> float:
-    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1])
+def euclidian_dist(p1: Point, p2: Point) -> float:
+    return sqrt((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2)
 
 class ThresholdTracker:
     prevous_points: list[Point] = []
@@ -19,28 +21,21 @@ class ThresholdTracker:
         self.thresholds = thresholds
         self.threhold_counts = [0 for _ in thresholds]
 
-    def update(self, points: list[Point], debug_img: Optional[np.ndarray] = None) -> int:
-        for i, threshold in enumerate(self.thresholds):
-            countable_points = [p for p in points if p[0] > threshold]
-            for point in countable_points:
-                # we need to find a previous point that matches
-                for prev_point in self.prevous_points:
-                    is_left = prev_point[0] < point[0]
-                    close_enough = manhattan_dist(prev_point, point) < 200
-                    crossed_threshold = prev_point[0] <= threshold
+    def update(self, points: list[Point], debug_img: Optional[np.ndarray] = None):
+        for point in points:
+            candidate_points = [p for p in self.prevous_points if p[0] < point[0]]
+            if len(candidate_points) < 1:
+                continue
 
-                    if is_left and close_enough and crossed_threshold:
-                        # count it!
-                        self.threhold_counts[i] += 1
-                        cv.drawMarker(
-                            debug_img,
-                            point,
-                            GREEN,
-                            cv.MARKER_TILTED_CROSS,
-                            markerSize=20,
-                            thickness=3,
-                        )
-                        break
+            closest_prev_point = min(candidate_points, key=lambda p: euclidian_dist(point, p))
+            self.prevous_points.remove(closest_prev_point)
+
+            for i, threshold in enumerate(self.thresholds):
+                if closest_prev_point[0] <= threshold and threshold < point[0]:
+                    # count it!
+                    self.threhold_counts[i] += 1
+                    cv.imwrite(f"./counted/{i}_{self.threhold_counts[i]}.jpeg", debug_img)
+                    break
         
         self.prevous_points = points
     
