@@ -61,12 +61,3 @@ def before_apk_build(toolchain):
         unprocessed_args.append(camerax_java)
         info('Camerax Provider: Add android.add_src = ' +\
              './camerax_provider/camerax_src')
-
-
-
-
-
-
-
-
-
