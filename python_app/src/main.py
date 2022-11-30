@@ -1,42 +1,16 @@
 from kivy.app import App
-from kivy.core.window import Window
-from kivy.uix.boxlayout import BoxLayout
-from kivy.utils import platform
 from kivy.clock import Clock
 from applayout import AppLayout
 from android_permissions import AndroidPermissions
 
-if platform == 'android':
-    from jnius import autoclass
-    from android.runnable import run_on_ui_thread
-    from android import mActivity
-    View = autoclass('android.view.View')
-
-    @run_on_ui_thread
-    def hide_landscape_status_bar(instance, width, height):
-        # width,height gives false layout events, on pinch/spread 
-        # so use Window.width and Window.height
-        if Window.width > Window.height: 
-            # Hide status bar
-            option = View.SYSTEM_UI_FLAG_FULLSCREEN
-        else:
-            # Show status bar 
-            option = View.SYSTEM_UI_FLAG_VISIBLE
-        mActivity.getWindow().getDecorView().setSystemUiVisibility(option)
-elif platform != 'ios':
-    # Dispose of that nasty red dot, required for gestures4kivy.
-    from kivy.config import Config 
-    Config.set('input', 'mouse', 'mouse, disable_multitouch')
-
-class MyApp(App):
-    
+class CoralSpawnCounterApp(App):
     def build(self):
         self.layout = AppLayout()
-        if platform == 'android':
-            Window.bind(on_resize=hide_landscape_status_bar)
         return self.layout
 
     def on_start(self):
+        # assigned to self.dont_gc so the class isnt garbage collected
+        # this is very sus way to do it and ill change it when i get a chance
         self.dont_gc = AndroidPermissions(self.start_app)
 
     def start_app(self):
@@ -44,12 +18,13 @@ class MyApp(App):
         # Can't connect camera till after on_start()
         Clock.schedule_once(self.connect_camera)
 
-    def connect_camera(self,dt):
-        self.layout.edge_detect.connect_camera(analyze_pixels_resolution = 3840,
-                                               enable_analyze_pixels = True)
+    def connect_camera(self, dt):
+        self.layout.edge_detect.connect_camera(
+            analyze_pixels_resolution=3840,
+            enable_analyze_pixels=True,
+        )
 
     def on_stop(self):
         self.layout.edge_detect.disconnect_camera()
 
-MyApp().run()
-
+CoralSpawnCounterApp().run()

@@ -17,7 +17,6 @@ erode_kernel = np.ones((3, 3),np.uint8)
 roi_y, roi_x = ((400, 610), (400, 1450))
 
 
-
 class SpawnCounter(Preview):
     analyzed_texture: Optional[Texture] = None
 
