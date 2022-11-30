@@ -45,7 +45,7 @@ class MyApp(App):
         Clock.schedule_once(self.connect_camera)
 
     def connect_camera(self,dt):
-        self.layout.edge_detect.connect_camera(analyze_pixels_resolution = 720,
+        self.layout.edge_detect.connect_camera(analyze_pixels_resolution = 3840,
                                                enable_analyze_pixels = True)
 
     def on_stop(self):
