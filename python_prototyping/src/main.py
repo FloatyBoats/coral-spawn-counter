@@ -6,7 +6,7 @@ from contours import detect_contours, contour_center
 from counters import ThresholdTracker
 
 vid_src = VideoSource(
-    vid_path="/home/alistair/Videos/Coral Spawn/Whitsundays/20221117_161027_raw.mp4",
+    vid_path="/home/alistair/Videos/Coral Spawn/Whitsundays/20221117_121818_raw.mp4",
     skip_frames=0,
     rotate_degrees=0,
     #       y -> y      x -> x

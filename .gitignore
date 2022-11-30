@@ -1,8 +1,7 @@
 # recorded data
-real_data
-
-counted
-
+real_data/
+counted/
+old_counted/
 
 # ==============================================================================
 #                           Python Default Gitignore
@@ -226,3 +225,8 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+
+# buildozer
+!buildozer.spec
+.buildozer/
+bin/

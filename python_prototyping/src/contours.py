@@ -28,10 +28,11 @@ def detect_contours(
         cv.drawContours(temp, [contour], 0, (255,), -1)
         temp = cv.erode(temp, erode_kernel, iterations=1)
 
-        val = np.mean(grey_img[temp==255])
+        val = np.median(grey_img[temp==255])
         x, y = contour_center(contour)
 
-        if val < 180:
+        OVERRIDE = True
+        if OVERRIDE or val < 180:
             cv.circle(
                 grey_img,
                 (x, y),
@@ -43,6 +44,16 @@ def detect_contours(
                 grey_img,
                 f"{round(val, 2)}",
                 (x-40 , y-40),
+                cv.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                0,
+                1,
+                cv.LINE_AA,
+            )
+            cv.putText(
+                grey_img,
+                f"{round(cv.contourArea(contour), 2)} px",
+                (x-40 , y-60),
                 cv.FONT_HERSHEY_SIMPLEX,
                 0.6,
                 0,
