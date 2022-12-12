@@ -2,40 +2,21 @@
 #: import LabelledSlider widgets.LabelledSlider
 #: import ControlsSidebar widgets.ControlsSidebar
 
-<LabelledSlider>:
-    size_hint: None, None
-    height: 50
-    orientation: 'vertical'
+<LabelledSlider@Slider>:
+    sensitivity: "all"
     Label:
-        font_size: sp(30)
+        pos: (root.value_pos[0] - sp(16), root.center_y - sp(40)) if root.orientation == 'horizontal' else (root.center_x - sp(27), root.value_pos[1] - sp(16))
+        size_hint: None, None
+        size: sp(32), sp(32)
+        text: str(root.value)
+    Label:
+        pos: (root.pos[0] + sp(10), root.pos[1] + (root.height/2) + sp(10))
         size_hint: None, None
         size: self.texture_size
-        text: root.text
-        canvas.before:
-            Color:
-                rgba: 1, 0, 0, 1
-            Rectangle:
-                size: self.size
-                pos: self.pos
-    Slider:
-        min: root.min
-        max: root.max
-        value: root.value
-        canvas.before:
-            Color:
-                rgba: 0, 1, 0, 1
-            Rectangle:
-                size: self.size
-                pos: self.pos
+        text: str(root.text)
 
 <ControlsSidebar>:
     orientation: 'vertical'
-    canvas.before:
-        Color:
-            rgba: 0, 0, 1, 1
-        Rectangle:
-            size: self.size
-            pos: self.pos
     LabelledSlider:
         text: "Exposure"
         min: 100
@@ -73,5 +54,7 @@
     SpawnCounterPreview:
         id: preview
         aspect_ratio: '16:9'
+        size_hint: 0.8, 1
     ControlsSidebar:
         id: controls
+        size_hint: 0.2, 1

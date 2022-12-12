@@ -1,5 +1,6 @@
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import StringProperty, NumericProperty
+from kivy.properties import StringProperty
+from kivy.uix.slider import Slider
 
 # SEE coralspawncounter.kv for widget definitions
 
@@ -9,8 +10,5 @@ class AppLayout(BoxLayout):
 class ControlsSidebar(BoxLayout):
     pass
 
-class LabelledSlider(BoxLayout):
+class LabelledSlider(Slider):
     text = StringProperty()
-    value = NumericProperty(0.)
-    min = NumericProperty(0.)
-    max = NumericProperty(0.)
