@@ -1,0 +1,77 @@
+#: import SpawnCounterPreview spawn_counter.SpawnCounterPreview
+#: import LabelledSlider widgets.LabelledSlider
+#: import ControlsSidebar widgets.ControlsSidebar
+
+<LabelledSlider>:
+    size_hint: None, None
+    height: 50
+    orientation: 'vertical'
+    Label:
+        font_size: sp(30)
+        size_hint: None, None
+        size: self.texture_size
+        text: root.text
+        canvas.before:
+            Color:
+                rgba: 1, 0, 0, 1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+    Slider:
+        min: root.min
+        max: root.max
+        value: root.value
+        canvas.before:
+            Color:
+                rgba: 0, 1, 0, 1
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+<ControlsSidebar>:
+    orientation: 'vertical'
+    canvas.before:
+        Color:
+            rgba: 0, 0, 1, 1
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    LabelledSlider:
+        text: "Exposure"
+        min: 100
+        max: 200
+        value: 150
+    LabelledSlider:
+        text: "Erode Kernel Size (px)"
+        min: 100
+        max: 200
+        value: 150
+    LabelledSlider:
+        text: "Erode Iterations"
+        min: 100
+        max: 200
+        value: 150
+    LabelledSlider:
+        text: "Min Diameter Threshold (µm)"
+        min: 100
+        max: 200
+        value: 150
+    LabelledSlider:
+        text: "ROI Horizontal (px)"
+        min: 100
+        max: 200
+        value: 150
+    LabelledSlider:
+        text: "ROI Vertical (px)"
+        min: 100
+        max: 200
+        value: 150
+
+<AppLayout>:
+    preview: self.ids.preview
+    orientation: 'horizontal'
+    SpawnCounterPreview:
+        id: preview
+        aspect_ratio: '16:9'
+    ControlsSidebar:
+        id: controls

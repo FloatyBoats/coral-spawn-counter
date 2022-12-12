@@ -16,9 +16,20 @@ erode_kernel = np.ones((3, 3),np.uint8)
 
 roi_y, roi_x = ((400, 610), (400, 1450))
 
+class SpawnCounter:
+    def __init__(self):
+        pass
 
-class SpawnCounter(Preview):
+    def next_frame(self):
+        pass
+
+
+class SpawnCounterPreview(Preview):
     analyzed_texture: Optional[Texture] = None
+    counter = SpawnCounter()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def analyze_pixels_callback(
         self,

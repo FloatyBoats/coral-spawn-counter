@@ -1,7 +1,8 @@
 from kivy.app import App
 from kivy.clock import Clock
-from applayout import AppLayout
 from android_permissions import AndroidPermissions
+
+from widgets import AppLayout
 
 class CoralSpawnCounterApp(App):
     def build(self):
@@ -19,12 +20,12 @@ class CoralSpawnCounterApp(App):
         Clock.schedule_once(self.connect_camera)
 
     def connect_camera(self, dt):
-        self.layout.edge_detect.connect_camera(
+        self.layout.preview.connect_camera(
             analyze_pixels_resolution=3840,
             enable_analyze_pixels=True,
         )
 
     def on_stop(self):
-        self.layout.edge_detect.disconnect_camera()
+        self.layout.preview.disconnect_camera()
 
 CoralSpawnCounterApp().run()
