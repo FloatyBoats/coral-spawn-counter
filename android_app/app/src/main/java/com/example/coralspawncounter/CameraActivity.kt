@@ -68,6 +68,8 @@ class CameraActivity : AppCompatActivity() {
     private var recorderSurface: Surface? = null
     private lateinit var videoCapture: VideoCapture<Recorder>
     private var activeRecording: Recording? = null
+    private lateinit var outputDirectory: File
+    private lateinit var detectionDirectory: File
 
     init {
         OpenCVLoader.initDebug()
@@ -112,8 +114,9 @@ class CameraActivity : AppCompatActivity() {
 
         viewBinding.ButtonCountAndRecord.setOnClickListener {
             if (activeRecording == null) {
-                counter.doCount = true
                 startRecording()
+                counter.doCount = true
+                counter.detectionDirectory = detectionDirectory
                 viewBinding.ButtonCountAndRecord.text = "Stop and Save"
             } else {
                 counter.doCount = false
@@ -132,11 +135,16 @@ class CameraActivity : AppCompatActivity() {
         val rawName = "${timestamp}_raw.mp4"
         val processedName = "${timestamp}_processed.mp4"
 
+        outputDirectory = File(this.getExternalFilesDir(Environment.DIRECTORY_DCIM),"spawn_counter_${timestamp}")
+        outputDirectory.mkdir()
+        detectionDirectory = File(outputDirectory, "detections")
+        detectionDirectory.mkdir()
+
         val rawContentValues = ContentValues().apply {
             put(MediaStore.Video.Media.DISPLAY_NAME, rawName)
         }
 
-         val outputFile = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES), processedName);
+        val outputFile = File(outputDirectory, processedName)
 
         mediaRecorder = MediaRecorder()
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)

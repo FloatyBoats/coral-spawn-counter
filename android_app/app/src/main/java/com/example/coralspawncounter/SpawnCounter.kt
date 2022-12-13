@@ -1,10 +1,13 @@
 package com.example.coralspawncounter
 
 import android.R.attr.src
+import android.util.Log
 import org.opencv.core.*
+import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import org.opencv.video.BackgroundSubtractorMOG2
 import org.opencv.video.Video
+import java.io.File
 import kotlin.math.*
 
 
@@ -41,6 +44,8 @@ class SpawnCounter {
     private var minContourAreaPxThreshold = 0
     var minDiameterThresholdUM = 10
     var notes = ""
+    var detectionDirectory: File? = null
+    var detectionIncrement = 0
 
     var doCount = false
     var erodeIterations = 1
@@ -91,14 +96,7 @@ class SpawnCounter {
         val contourCenters = contours.map {centerAndWidth(it) }.filter { !it.center.x.isNaN() && !it.center.y.isNaN() }
 
         contourCenters.forEach {
-            Imgproc.drawMarker(
-                mat,
-                Point(roi.x + it.center.x, roi.y + it.center.y),
-                red,
-                Imgproc.MARKER_TILTED_CROSS,
-                20,
-                3,
-            )
+            Imgproc.circle(mat, Point(roi.x + it.center.x, it.center.y + roi.y),30, red, 2)
         }
 
         // draw ROI
@@ -115,18 +113,11 @@ class SpawnCounter {
             )
         }
 
+        var countedCenters: List<Point>? = null
         if(doCount) {
-            val countedCenters = counter.update(contourCenters)
-
+            countedCenters = counter.update(contourCenters)
             countedCenters.forEach {
-                center -> Imgproc.drawMarker(
-                    mat,
-                    Point(roi.x + center.x, center.y + roi.y),
-                    green,
-                    Imgproc.MARKER_TILTED_CROSS,
-                    20,
-                    3,
-                )
+                center -> Imgproc.circle(mat, Point(roi.x + center.x, center.y + roi.y),30, green, 2)
             }
         }
 
@@ -235,6 +226,14 @@ class SpawnCounter {
             1,
         )
         Imgproc.rectangle(binaryMat, Rect(40, 1, erodeKernel.width(), erodeKernel.height()), Scalar(255.0), -1)
+
+        if (doCount && countedCenters != null && countedCenters.isNotEmpty()) {
+            val outputFile = File(detectionDirectory, "${detectionIncrement}.jpg")
+            detectionIncrement++
+            Imgcodecs.imwrite(outputFile.toString(), mat)
+        } else if (!doCount){
+            detectionIncrement = 0
+        }
     }
 
 
