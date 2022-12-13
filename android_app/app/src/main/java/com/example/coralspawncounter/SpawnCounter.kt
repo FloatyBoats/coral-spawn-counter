@@ -8,6 +8,8 @@ import org.opencv.imgproc.Imgproc
 import org.opencv.video.BackgroundSubtractorMOG2
 import org.opencv.video.Video
 import java.io.File
+import kotlin.concurrent.thread
+import kotlin.coroutines.coroutineContext
 import kotlin.math.*
 
 
@@ -228,9 +230,11 @@ class SpawnCounter {
         Imgproc.rectangle(binaryMat, Rect(40, 1, erodeKernel.width(), erodeKernel.height()), Scalar(255.0), -1)
 
         if (doCount && countedCenters != null && countedCenters.isNotEmpty()) {
-            val outputFile = File(detectionDirectory, "${detectionIncrement}.jpg")
-            detectionIncrement++
-            Imgcodecs.imwrite(outputFile.toString(), mat)
+            thread {
+                val outputFile = File(detectionDirectory, "${detectionIncrement}.jpg")
+                detectionIncrement++
+                Imgcodecs.imwrite(outputFile.absolutePath, mat)
+            }
         } else if (!doCount){
             detectionIncrement = 0
         }
