@@ -2,21 +2,24 @@ import cv2 as cv
 import numpy as np
 
 from video_source import VideoSource
-from contours import detect_contours, contour_center
+from contours import detect_contours, contour_center, filter_contours
 from counters import ThresholdTracker
 
+video_name = "20221213_153310_raw"
+
 vid_src = VideoSource(
-    vid_path="/home/alistair/Videos/Coral Spawn/Whitsundays/20221117_121818_raw.mp4",
+    vid_path=f"/home/alistair/Videos/Coral Spawn/Lizard Island/{video_name}.mp4",
     skip_frames=0,
     rotate_degrees=0,
     #       y -> y      x -> x
-    roi=((400, 610), (400, 1450)),
+    roi=((400, 540), (250, 1470)),
 )
 
 counter = ThresholdTracker(thresholds=[300, 700])
 
 bg_subtractor = cv.createBackgroundSubtractorMOG2(detectShadows=False)
 erode_kernel = np.ones((3, 3),np.uint8)
+dialate_kernel = np.ones((7, 7),np.uint8)
 
 # warm up the background detector
 for _ in range(2):
@@ -38,29 +41,49 @@ while True:
     # leaving only particles in the water
     fg_mask = bg_subtractor.apply(frame)
 
-    # erode the detection mask, removing noise and hopefully separating 
-    # particles that are close together
+    # erode the detection mask to remove noise
     fg_mask = cv.erode(fg_mask, erode_kernel, iterations=1)
+    # dialte to expand the mask around the spawn
+    fg_mask = cv.dilate(fg_mask, dialate_kernel, iterations=1)
+
+    # apply the mask
+    # grey_frame_masked = cv.bitwise_and(grey_frame, grey_frame, mask=fg_mask)
+
+    # threshold the masked grey to try and find the edge of the spawn
+    # _, fg_mask = cv.threshold(grey_frame_masked, 0, 255, cv.THRESH_BINARY + cv.THRESH_OTSU)
+    fg_mask = cv.adaptiveThreshold(grey_frame, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 5, 2)
 
     # detect contours, filtering by area
-    contours = detect_contours(fg_mask, grey_frame, min_area_thresh=100, debug_img=frame)
+    contours = detect_contours(fg_mask)
+    contours = filter_contours(
+        contours,
+        frame,
+        min_area=50,
+        min_convexity=0.6,
+        min_aspect_ratio=0.4,
+    )
 
-    counter.update([contour_center(c) for c in contours], debug_img=grey_frame)
+    counter.update(
+        [contour_center(c) for c in contours],
+        debug_img=frame,
+        binary_img=fg_mask,
+        video_name=video_name
+    )
     counter.visualise(frame)
     
-    # if len(contours) < 1:
-    #     continue
+    if len(contours) < 1:
+        continue
 
-    # cv.imshow("fg", fg_mask)
-    # cv.imshow("frame", grey_frame)
+    cv.imshow("fg", fg_mask)
+    cv.imshow("frame", frame)
 
-    # if cv.waitKey(0) & 0xFF == ord('q'):
-    #     # q to exit
-    #     break
+    if cv.waitKey(0) & 0xFF == ord('q'):
+        # q to exit
+        break
 
 
 # display final image
 # cv.imshow("frame", frame)
 
-print(f"Counts: {counter.threhold_counts}")
+print(f"Counts: {counter.threshold_counts}")
 # input()

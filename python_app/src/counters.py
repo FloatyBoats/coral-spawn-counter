@@ -15,11 +15,11 @@ class ThresholdTracker:
     prevous_points: list[Point] = []
     count_line: int
     thresholds: list[int]
-    threhold_counts: list[int]
+    threshold_counts: list[int]
 
     def __init__(self, thresholds: list[int]) -> None:
         self.thresholds = thresholds
-        self.threhold_counts = [0 for _ in thresholds]
+        self.threshold_counts = [0 for _ in thresholds]
 
     def update(self, points: list[Point], debug_img: Optional[np.ndarray] = None):
         for point in points:
@@ -33,15 +33,15 @@ class ThresholdTracker:
             for i, threshold in enumerate(self.thresholds):
                 if closest_prev_point[0] <= threshold and threshold < point[0]:
                     # count it!
-                    self.threhold_counts[i] += 1
-                    cv.imwrite(f"./counted/{i}_{self.threhold_counts[i]}.jpeg", debug_img)
+                    self.threshold_counts[i] += 1
+                    cv.imwrite(f"./counted/{i}_{self.threshold_counts[i]}.jpeg", debug_img)
                     break
         
         self.prevous_points = points
     
     def visualise(self, debug_img: np.ndarray):
         height, _, _ = debug_img.shape
-        for threshold, count in zip(self.thresholds, self.threhold_counts):
+        for threshold, count in zip(self.thresholds, self.threshold_counts):
             cv.line(
                 debug_img,
                 (threshold, 0),
@@ -54,4 +54,4 @@ class ThresholdTracker:
         cv.putText(debug_img, f"Cnt: {self.get_max_count()}", (30, 30), cv.FONT_HERSHEY_SIMPLEX, 1, GREEN, 2)
 
     def get_max_count(self) -> int:
-        return max(self.threhold_counts)
+        return max(self.threshold_counts)

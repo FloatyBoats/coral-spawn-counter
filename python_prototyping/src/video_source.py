@@ -1,5 +1,6 @@
 import cv2 as cv
 import numpy as np
+from pathlib import Path
 
 from typing import Optional
 
@@ -8,6 +9,7 @@ ROI = tuple[tuple[int, int], tuple[int, int]]
 class VideoSource:
     roi: Optional[ROI]
     rotate_degrees: Optional[int]
+    source_name: str
 
     _cap: cv.VideoCapture
     _rotation_M: Optional[np.ndarray] = None
@@ -28,9 +30,11 @@ class VideoSource:
         
         if capture_device is not None:
             self._cap = cv.VideoCapture(capture_device)
+            self.source_name = f"Device {capture_device}"
         
         if vid_path is not None:
             self._cap = cv.VideoCapture(vid_path)
+            self.source_name = Path(vid_path).stem
         
         self.rotate_degrees = rotate_degrees
         self.roi = roi

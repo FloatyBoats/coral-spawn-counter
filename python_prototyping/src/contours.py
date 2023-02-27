@@ -10,59 +10,109 @@ Point = tuple[int, int]
 
 erode_kernel = np.ones((5, 5),np.uint8)
 
-def detect_contours(
-    binary_img: np.ndarray,
-    grey_img: np.ndarray,
-    min_area_thresh: Optional[int] = None,
+def detect_contours(binary_img: np.ndarray) -> list[Contour]:
+    contours, _ =  cv.findContours(binary_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    return contours
+
+def filter_contours(
+    contours: list[Contour],
+    min_area: int,
+    min_convexity: float,
+    min_aspect_ratio: float,
     debug_img: Optional[np.ndarray] = None,
+    draw_values: bool = True,
 ) -> list[Contour]:
-    contours, _ = cv.findContours(binary_img, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-
-    if min_area_thresh is not None:
-        contours = [c for c in contours if cv.contourArea(c) > min_area_thresh]
-
-    final_contours = []
+    filtered_contours = []
 
     for contour in contours:
-        temp = np.zeros_like(grey_img)
-        cv.drawContours(temp, [contour], 0, (255,), -1)
-        temp = cv.erode(temp, erode_kernel, iterations=1)
+        # filter area - increase threshold?
+        area = cv.contourArea(contour)
+        if area < min_area:
+            continue
 
-        val = np.median(grey_img[temp==255])
-        x, y = contour_center(contour)
+        # filter convexity
+        convexity = contour_convexity(contour)
+        if convexity < min_convexity:
+            continue
 
-        OVERRIDE = True
-        if OVERRIDE or val < 180:
+        # filter by aspect ratio
+        aspect_ratio = contour_aspect_ratio(contour)
+        if aspect_ratio < min_aspect_ratio:
+            continue
+        
+        # filter circularity?
+
+        if debug_img is not None:
+            x, y = contour_center(contour)
+
+            if draw_values:
+                cv.putText(
+                    debug_img,
+                    f"Ar: {round(area, 2)}",
+                    (x-40 , y-35),
+                    cv.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.6,
+                    color=BLUE,
+                    thickness=1,
+                    lineType=cv.LINE_AA,
+                )
+
+                cv.putText(
+                    debug_img,
+                    f"Cv: {round(convexity, 2)}",
+                    (x-40 , y-50),
+                    cv.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.6,
+                    color=BLUE,
+                    thickness=1,
+                    lineType=cv.LINE_AA,
+                )
+
+                cv.putText(
+                    debug_img,
+                    f"As: {round(aspect_ratio, 2)}",
+                    (x-40 , y-65),
+                    cv.FONT_HERSHEY_SIMPLEX,
+                    fontScale=0.6,
+                    color=BLUE,
+                    thickness=1,
+                    lineType=cv.LINE_AA,
+                )
+
             cv.circle(
-                grey_img,
+                debug_img,
                 (x, y),
-                30,
-                0,
+                radius=30,
+                color=BLUE,
                 thickness=2,
             )
-            cv.putText(
-                grey_img,
-                f"{round(val, 2)}",
-                (x-40 , y-40),
-                cv.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                0,
-                1,
-                cv.LINE_AA,
-            )
-            cv.putText(
-                grey_img,
-                f"{round(cv.contourArea(contour), 2)} px",
-                (x-40 , y-60),
-                cv.FONT_HERSHEY_SIMPLEX,
-                0.6,
-                0,
-                1,
-                cv.LINE_AA,
-            )
-            final_contours.append(contour)
 
-    return final_contours
+        filtered_contours.append(contour)
+
+    return filtered_contours   
+
+
+def contour_convexity(contour: Contour) -> float:
+    return cv.contourArea(contour) / cv.contourArea(cv.convexHull(contour))
+
+
+def contour_aspect_ratio(contour: Contour) -> float:
+    _, dimensions, _ = cv.minAreaRect(contour)
+    long = max(dimensions)
+    short = min(dimensions)
+
+    return short / long
+
+def circle_contour(contour: Contour, img: np.ndarray):
+    x, y = contour_center(contour)
+    cv.circle(
+        img,
+        (x, y),
+        radius=30,
+        color=BLUE,
+        thickness=2,
+    )
+    
 
 def contour_center(contour: Contour) -> Point:
     M = cv.moments(contour)
