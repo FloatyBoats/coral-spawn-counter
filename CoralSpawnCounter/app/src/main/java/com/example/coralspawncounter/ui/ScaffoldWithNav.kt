@@ -60,7 +60,7 @@ fun ScaffoldWithNav () {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    Text(text = "Record")
+                    RecordScreen()
                 }
             }
             composable(route = Screen.Review.route) {
