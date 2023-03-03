@@ -1,12 +1,8 @@
 package com.example.coralspawncounter.ui
 
-import android.view.Surface
 import android.view.ViewGroup
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
@@ -23,20 +19,15 @@ import kotlin.coroutines.*
 fun RecordScreen(onPreviewViewAvailable: (PreviewView) -> Unit) {
     CameraPermissionsRequester {
         Row {
-            Column(modifier = Modifier.fillMaxWidth(0.8f)) {
-                Surface(modifier = Modifier.fillMaxHeight(0.8f)) {
-                    CameraPreviewView(onPreviewViewAvailable)
-                }
-                Surface {
-                    Text(text = "Secondary View")
-                }
+            Column(Modifier.fillMaxWidth(0.6f)) {
+                CameraPreviewView(
+                    onPreviewViewAvailable,
+                    modifier = Modifier.fillMaxHeight(0.7f).fillMaxWidth(),
+                )
+                Text("Secondary View")
             }
-
-            Surface {
-                Text(text = "Some Camera Controls")
-            }
+            Text("Some Camera Controls")
         }
-
     }
 }
 
@@ -71,12 +62,16 @@ fun CameraPermissionsRequester(content: @Composable() () -> Unit){
 }
 
 @Composable
-fun CameraPreviewView(onPreviewViewAvailable: (PreviewView) -> Unit) {
+fun CameraPreviewView(
+    onPreviewViewAvailable: (PreviewView) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val coroutineScope = rememberCoroutineScope { Dispatchers.IO }
     AndroidView(
+        modifier = modifier,
         factory = { context ->
             val previewView = PreviewView(context).apply {
-                this.scaleType = PreviewView.ScaleType.FIT_CENTER
+                this.scaleType = PreviewView.ScaleType.FIT_START
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT,
