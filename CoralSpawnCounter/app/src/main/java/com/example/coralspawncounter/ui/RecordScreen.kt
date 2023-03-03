@@ -1,11 +1,16 @@
 package com.example.coralspawncounter.ui
 
+import android.view.Surface
 import android.view.ViewGroup
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -17,7 +22,21 @@ import kotlin.coroutines.*
 @Composable
 fun RecordScreen(onPreviewViewAvailable: (PreviewView) -> Unit) {
     CameraPermissionsRequester {
-        CameraPreviewView(onPreviewViewAvailable)
+        Row {
+            Column(modifier = Modifier.fillMaxWidth(0.8f)) {
+                Surface(modifier = Modifier.fillMaxHeight(0.8f)) {
+                    CameraPreviewView(onPreviewViewAvailable)
+                }
+                Surface {
+                    Text(text = "Secondary View")
+                }
+            }
+
+            Surface {
+                Text(text = "Some Camera Controls")
+            }
+        }
+
     }
 }
 
@@ -57,10 +76,10 @@ fun CameraPreviewView(onPreviewViewAvailable: (PreviewView) -> Unit) {
     AndroidView(
         factory = { context ->
             val previewView = PreviewView(context).apply {
-                this.scaleType = scaleType
+                this.scaleType = PreviewView.ScaleType.FIT_CENTER
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
+                    ViewGroup.LayoutParams.MATCH_PARENT,
                 )
             }
 
