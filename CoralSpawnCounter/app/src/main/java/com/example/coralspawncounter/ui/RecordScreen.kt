@@ -1,38 +1,36 @@
 package com.example.coralspawncounter.ui
 
-import android.content.Context
-import android.util.Log
 import android.view.ViewGroup
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.Preview
-import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.accompanist.permissions.shouldShowRationale
 import kotlinx.coroutines.*
-import java.util.concurrent.Executor
 import kotlin.coroutines.*
 
+@Composable
+fun RecordScreen(onPreviewViewAvailable: (PreviewView) -> Unit) {
+    CameraPermissionsRequester {
+        CameraPreviewView(onPreviewViewAvailable)
+    }
+}
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun RecordScreen() {
+fun CameraPermissionsRequester(content: @Composable() () -> Unit){
     // Camera permission state
     val cameraPermissionState = rememberPermissionState(
         android.Manifest.permission.CAMERA
     )
 
     if (cameraPermissionState.status.isGranted) {
-        CameraPreviewView()
+        content()
     } else {
         Column {
             val textToShow = if (cameraPermissionState.status.shouldShowRationale) {
@@ -54,9 +52,8 @@ fun RecordScreen() {
 }
 
 @Composable
-fun CameraPreviewView() {
-    val coroutineScope = rememberCoroutineScope()
-    val lifecycleOwner = LocalLifecycleOwner.current
+fun CameraPreviewView(onPreviewViewAvailable: (PreviewView) -> Unit) {
+    val coroutineScope = rememberCoroutineScope { Dispatchers.IO }
     AndroidView(
         factory = { context ->
             val previewView = PreviewView(context).apply {
@@ -67,38 +64,11 @@ fun CameraPreviewView() {
                 )
             }
 
-            // CameraX Preview UseCase
-            val previewUseCase = Preview.Builder()
-                .build()
-                .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
-                }
-
             coroutineScope.launch {
-                val cameraProvider = context.getCameraProvider()
-                try {
-                    // Must unbind the use-cases before rebinding them.
-                    cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner, CameraSelector.DEFAULT_BACK_CAMERA, previewUseCase
-                    )
-                } catch (ex: Exception) {
-                    Log.e("CameraPreview", "Use case binding failed", ex)
-                }
+                onPreviewViewAvailable(previewView)
             }
 
             previewView
         }
     )
-}
-
-
-val Context.executor: Executor
-    get() = ContextCompat.getMainExecutor(this)
-suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspendCoroutine { continuation ->
-    ProcessCameraProvider.getInstance(this).also { future ->
-        future.addListener({
-            continuation.resume(future.get())
-        }, executor)
-    }
 }

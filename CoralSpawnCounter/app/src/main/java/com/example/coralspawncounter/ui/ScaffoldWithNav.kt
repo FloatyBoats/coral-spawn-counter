@@ -1,5 +1,6 @@
 package com.example.coralspawncounter.ui
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
@@ -10,13 +11,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun ScaffoldWithNav () {
+fun ScaffoldWithNav (getNavHost: @Composable() (PaddingValues, NavHostController) -> Unit) {
     val navController = rememberNavController()
     Scaffold(
         topBar = { TopAppBar(title = { Text(text = "Coral Spawn Counter") }) },
@@ -48,28 +50,8 @@ fun ScaffoldWithNav () {
                     )
                 }
             }
-        }
+        },
     ) {
-        innerPadding ->
-        NavHost(
-            navController,
-            startDestination = Screen.Record.route,
-            Modifier.padding(innerPadding)
-        ) {
-            composable(route = Screen.Record.route) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    RecordScreen()
-                }
-            }
-            composable(route = Screen.Review.route) {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    Text(text = "Review")
-                }
-            }
-        }
+        innerPadding -> getNavHost(innerPadding, navController)
     }
 }
