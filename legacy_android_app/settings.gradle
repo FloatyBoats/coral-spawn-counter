@@ -14,4 +14,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Coral Spawn Counter"
 include ':app'
-include ':OpenCVLib460'
+
+def opencvsdk='../../OpenCV/OpenCV-android-sdk'
+include ':opencv'
+project(':opencv').projectDir = new File(opencvsdk + '/sdk')

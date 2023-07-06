@@ -10,8 +10,8 @@
         <option name="gradleJvm" value="Embedded JDK" />
         <option name="modules">
           <set>
+            <option value="$PROJECT_DIR$/../../OpenCV/OpenCV-android-sdk/sdk" />
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/OpenCVLib460" />
             <option value="$PROJECT_DIR$/app" />
           </set>
         </option>
